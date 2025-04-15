@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>KML Click Capture Sample</title>
+    <style>
+      html, body {
+        height: 800px;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        }
+      #map {
+       height: 100%;
+       width: 75%;
+       border: thin solid #333;
+       }
+      #capture {
+       height: 100%;
+       width: 25%;
+       background-color: #ECECFB;
+       border: thin solid #333;
+       border-left: none;
+       }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="capture"></div>
+    <script>
+      function initMap() {
+        class NoneMapType {
+          tileSize;
+          maxZoom = 19;
+          alt = "None Map Type";
+          constructor(tileSize) {
+            this.tileSize = tileSize;
+          }
+          getTile(coord, zoom, ownerDocument) {
+            const div = ownerDocument.createElement("div");
+            div.style.width = this.tileSize.width + "px";
+            div.style.height = this.tileSize.height + "px";
+            div.style.backgroundColor = "#FFFFFF";
+            return div;
+          }
+          releaseTile(tile) { }
+        }
+
+        const map = new google.maps.Map(document.getElementById('map'), {
+          //center: new google.maps.LatLng(25.6600833, -100.1768103),
+          center: new google.maps.LatLng(37.42419403634421,-122.0926995893311),
+          zoom: 12,
+          mapTypeId: 'none'
+        });
+        map.mapTypes.set(
+          "coordinate",
+          new NoneMapType(new google.maps.Size(256, 256)),
+        );
+        const urlParams = new URLSearchParams(window.location.search);
+        const group = urlParams.get('g');
+
+        const kmlLayer = new google.maps.KmlLayer(`https://dmedina9.github.io/Map/${(group ? "grupo" + group : "Territorio")}.kml`, {
+          suppressInfoWindows: true,
+          preserveViewport: false,
+          map: map
+        });
+        kmlLayer.addListener('click', function(event) {
+          const content = event.featureData.infoWindowHtml;
+          const testimonial = document.getElementById('capture');
+          testimonial.innerHTML = content;
+        });
+        /*google.maps.event.addListener(kmlLayer, 'status_changed', function() {
+          console.log(kmlLayer.getStatus());
+        });*/
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDHK10EcloFqGQ5lNbro85Hj9LGUjCE378&loading=async&callback=initMap&libraries=marker" defer></script>
+  </body>
+</html>
