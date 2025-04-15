@@ -61,7 +61,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const group = urlParams.get('g');
 
-        const kmlLayer = new google.maps.KmlLayer(`https://dmedina9.github.io/Map/${(group ? "grupo" + group : "Territorio")}.kml`, {
+        const kmlLayer = new google.maps.KmlLayer(`https://dmedina9.github.io/Map/${(group ? "Grupo" + group : "Territorio")}.kml`, {
           suppressInfoWindows: true,
           preserveViewport: false,
           map: map
