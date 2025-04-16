@@ -50,9 +50,9 @@
 
         const map = new google.maps.Map(document.getElementById('map'), {
           minZoom: 4,
-					maxZoom: 12,
+					maxZoom: 20,
           center: new google.maps.LatLng(37.42419403634421,-122.0926995893311),
-          zoom: 12,
+          zoom: 15,
           mapTypeId: 'none',
 					restriction: {
 						latLngBounds: {
@@ -63,7 +63,7 @@
 						},
 						strictBounds: false
 					},
-					disableDefaultUI: true,
+					//disableDefaultUI: true,
 					//gestureHandling: "none",
 					keyboardShortcuts: false
         });
