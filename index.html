@@ -49,10 +49,23 @@
         }
 
         const map = new google.maps.Map(document.getElementById('map'), {
-          //center: new google.maps.LatLng(25.6600833, -100.1768103),
+          minZoom: 4,
+					maxZoom: 12,
           center: new google.maps.LatLng(37.42419403634421,-122.0926995893311),
           zoom: 12,
-          mapTypeId: 'none'
+          mapTypeId: 'none',
+					restriction: {
+						latLngBounds: {
+							north: 33,
+							south: 14,
+							east: -80,
+							west: -118
+						},
+						strictBounds: false
+					},
+					disableDefaultUI: true,
+					//gestureHandling: "none",
+					keyboardShortcuts: false
         });
         map.mapTypes.set(
           "coordinate",
