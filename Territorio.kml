@@ -1058,6 +1058,15 @@
 								-100.174999,25.648361,0
 								-100.174956,25.648569,0
 								-100.174887,25.648776,0
+								-100.1792,25.650711,0
+								-100.179119,25.650687,0
+								-100.178701,25.651605,0
+								-100.177773,25.652669,0
+								-100.17685,25.65163,0
+								-100.176507,25.65133,0
+								-100.175852,25.650909,0
+								-100.174211,25.650363,0
+								-100.175208,25.650658,0
 								-100.179366,25.649869,0
 								-100.179495,25.649221,0
 								-100.180154,25.647224,0
@@ -1067,32 +1076,7 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>Grupo 4 (Misión Santa Fe)</name>
-				<styleUrl>#poly-673AB7-2000-77-nodesc</styleUrl>
-				<Polygon>
-					<outerBoundaryIs>
-						<LinearRing>
-							<tessellate>1</tessellate>
-							<coordinates>
-								-100.177773,25.652669,0
-								-100.178701,25.651605,0
-								-100.179119,25.650687,0
-								-100.1792,25.650711,0
-								-100.179366,25.649869,0
-								-100.174887,25.648776,0
-								-100.174211,25.650363,0
-								-100.175208,25.650658,0
-								-100.175852,25.650909,0
-								-100.176507,25.65133,0
-								-100.17685,25.65163,0
-								-100.177773,25.652669,0
-							</coordinates>
-						</LinearRing>
-					</outerBoundaryIs>
-				</Polygon>
-			</Placemark>
-			<Placemark>
-				<name>Grupo 5 (Ciudad CROC)</name>
+				<name>Grupo 4 (Ciudad CROC)</name>
 				<styleUrl>#poly-FFEA00-2000-77-nodesc</styleUrl>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1113,7 +1097,7 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>Grupo 6 (15)</name>
+				<name>Grupo 5 (Pedregal de Guadalupe)</name>
 				<styleUrl>#poly-0F9D58-2000-77-nodesc</styleUrl>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1141,7 +1125,7 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>Grupo 7 (15)</name>
+				<name>Grupo 6 (Valles de Guadalupe)</name>
 				<styleUrl>#poly-795548-2000-77-nodesc</styleUrl>
 				<Polygon>
 					<outerBoundaryIs>
@@ -2564,7 +2548,7 @@
 					</outerBoundaryIs>
 				</Polygon>
 			</Placemark>
-		<Placemark>
+			<Placemark>
 				<name>G3-14 (44)</name>
 				<description>G3-14</description>
 				<styleUrl>#poly-006064-2101-77</styleUrl>
@@ -2612,7 +2596,7 @@
 					</outerBoundaryIs>
 				</Polygon>
 			</Placemark>
-		<Placemark>
+			<Placemark>
 				<name>G3-16 (59)</name>
 				<description>G3-16</description>
 				<styleUrl>#poly-006064-2101-77</styleUrl>
@@ -3061,7 +3045,7 @@
 					</outerBoundaryIs>
 				</Polygon>
 			</Placemark>
-		<!--/Folder>
+			<!--/Folder>
     <Folder>
       <name>Grupo 4</name/-->
 		</Folder>
