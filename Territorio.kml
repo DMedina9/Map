@@ -7,7 +7,7 @@
 				<color>ff000000</color>
 				<scale>1</scale>
 				<Icon>
-					<href>https://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png</href>
+					<href>https://maps.google.com/mapfiles/kml/paddle/red-circle.png</href>
 				</Icon>
 			</IconStyle>
 			<BalloonStyle>
@@ -19,7 +19,7 @@
 				<color>ffd18802</color>
 				<scale>1</scale>
 				<Icon>
-					<href>https://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png</href>
+					<href>https://maps.google.com/mapfiles/kml/paddle/red-circle.png</href>
 				</Icon>
 				<hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
 			</IconStyle>
@@ -753,47 +753,6 @@
 				<name>Jardines de Andalucía-Guadalupe, N.L. (S)</name>
 				<description><![CDATA[Descripción: Límite (Normal) <br>Guadalupe (Nuevo León) México<br><br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre:<br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre: ]]></description>
 				<styleUrl>#poly-0055FF-901-0</styleUrl>
-				<ExtendedData>
-					<Data name="Descripción">
-						<value>
-							Límite (Normal)
-							Guadalupe (Nuevo León) México
-
-							Language:
-							Type:
-							formattedDate:
-							borderNorth:
-							borderEast:
-							borderSouth:
-							borderWest:
-							nombre:
-						</value>
-					</Data>
-					<Data name="Language">
-						<value/>
-					</Data>
-					<Data name="Type">
-						<value/>
-					</Data>
-					<Data name="formattedDate">
-						<value/>
-					</Data>
-					<Data name="borderNorth">
-						<value/>
-					</Data>
-					<Data name="borderEast">
-						<value/>
-					</Data>
-					<Data name="borderSouth">
-						<value/>
-					</Data>
-					<Data name="borderWest">
-						<value/>
-					</Data>
-					<Data name="nombre">
-						<value/>
-					</Data>
-				</ExtendedData>
 				<Polygon>
 					<outerBoundaryIs>
 						<LinearRing>
@@ -820,36 +779,18 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>1902600012510007 (0)</name>
-				<description><![CDATA[Descripción: <br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre: ]]></description>
+				<name>Parque Industrial La Silla-1</name>
+				<description><![CDATA[Empresas]]></description>
 				<styleUrl>#poly-BDBDBD-2000-255</styleUrl>
 				<ExtendedData>
-					<Data name="Descripción">
-						<value/>
+					<Data name="Casas">
+						<value>0</value>
 					</Data>
-					<Data name="Language">
-						<value/>
+					<Data name="Grupo">
+						<value></value>
 					</Data>
-					<Data name="Type">
-						<value/>
-					</Data>
-					<Data name="formattedDate">
-						<value/>
-					</Data>
-					<Data name="borderNorth">
-						<value/>
-					</Data>
-					<Data name="borderEast">
-						<value/>
-					</Data>
-					<Data name="borderSouth">
-						<value/>
-					</Data>
-					<Data name="borderWest">
-						<value/>
-					</Data>
-					<Data name="nombre">
-						<value/>
+					<Data name="Manzana">
+						<value>1</value>
 					</Data>
 				</ExtendedData>
 				<Polygon>
@@ -954,36 +895,18 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>1902600012510001 (2)</name>
-				<description><![CDATA[Descripción: <br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre: ]]></description>
+				<name>Parque Industrial La Silla-2</name>
+				<description><![CDATA[Empresas]]></description>
 				<styleUrl>#poly-BDBDBD-2000-77</styleUrl>
 				<ExtendedData>
-					<Data name="Descripción">
-						<value/>
+					<Data name="Casas">
+						<value>2</value>
 					</Data>
-					<Data name="Language">
-						<value/>
+					<Data name="Grupo">
+						<value></value>
 					</Data>
-					<Data name="Type">
-						<value/>
-					</Data>
-					<Data name="formattedDate">
-						<value/>
-					</Data>
-					<Data name="borderNorth">
-						<value/>
-					</Data>
-					<Data name="borderEast">
-						<value/>
-					</Data>
-					<Data name="borderSouth">
-						<value/>
-					</Data>
-					<Data name="borderWest">
-						<value/>
-					</Data>
-					<Data name="nombre">
-						<value/>
+					<Data name="Manzana">
+						<value>2</value>
 					</Data>
 				</ExtendedData>
 				<Polygon>
@@ -1035,36 +958,18 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>1902600012510033 (24)</name>
-				<description><![CDATA[Descripción: <br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre: ]]></description>
+				<name>Acacia-1</name>
+				<description>Acacia (Colonia privada)</description>
 				<styleUrl>#poly-BDBDBD-2000-77</styleUrl>
 				<ExtendedData>
-					<Data name="Descripción">
-						<value/>
+					<Data name="Casas">
+						<value>24</value>
 					</Data>
-					<Data name="Language">
-						<value/>
+					<Data name="Grupo">
+						<value></value>
 					</Data>
-					<Data name="Type">
-						<value/>
-					</Data>
-					<Data name="formattedDate">
-						<value/>
-					</Data>
-					<Data name="borderNorth">
-						<value/>
-					</Data>
-					<Data name="borderEast">
-						<value/>
-					</Data>
-					<Data name="borderSouth">
-						<value/>
-					</Data>
-					<Data name="borderWest">
-						<value/>
-					</Data>
-					<Data name="nombre">
-						<value/>
+					<Data name="Manzana">
+						<value>1</value>
 					</Data>
 				</ExtendedData>
 				<Polygon>
@@ -1083,36 +988,18 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>1902600012510032 (20)</name>
-				<description><![CDATA[Descripción: <br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre: ]]></description>
+				<name>Acacia-2</name>
+				<description>Acacia (Colonia privada)</description>
 				<styleUrl>#poly-BDBDBD-2000-77</styleUrl>
 				<ExtendedData>
-					<Data name="Descripción">
-						<value/>
+					<Data name="Casas">
+						<value>20</value>
 					</Data>
-					<Data name="Language">
-						<value/>
+					<Data name="Grupo">
+						<value></value>
 					</Data>
-					<Data name="Type">
-						<value/>
-					</Data>
-					<Data name="formattedDate">
-						<value/>
-					</Data>
-					<Data name="borderNorth">
-						<value/>
-					</Data>
-					<Data name="borderEast">
-						<value/>
-					</Data>
-					<Data name="borderSouth">
-						<value/>
-					</Data>
-					<Data name="borderWest">
-						<value/>
-					</Data>
-					<Data name="nombre">
-						<value/>
+					<Data name="Manzana">
+						<value>2</value>
 					</Data>
 				</ExtendedData>
 				<Polygon>
@@ -1371,9 +1258,20 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>G1-1 (42)</name>
+				<name>G1-1</name>
 				<description>G1-1</description>
 				<styleUrl>#poly-E65100-2000-77</styleUrl>
+				<ExtendedData>
+					<Data name="Casas">
+						<value>42</value>
+					</Data>
+					<Data name="Grupo">
+						<value>1</value>
+					</Data>
+					<Data name="Manzana">
+						<value>1</value>
+					</Data>
+				</ExtendedData>
 				<Polygon>
 					<outerBoundaryIs>
 						<LinearRing>
@@ -1408,9 +1306,20 @@
 				</Polygon>
 			</Placemark>
 			<Placemark>
-				<name>G1-2 (65)</name>
+				<name>G1-2</name>
 				<description>G1-2</description>
 				<styleUrl>#poly-E65100-2000-77</styleUrl>
+				<ExtendedData>
+					<Data name="Casas">
+						<value>65</value>
+					</Data>
+					<Data name="Grupo">
+						<value>1</value>
+					</Data>
+					<Data name="Manzana">
+						<value>2</value>
+					</Data>
+				</ExtendedData>
 				<Polygon>
 					<outerBoundaryIs>
 						<LinearRing>
