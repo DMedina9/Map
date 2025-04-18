@@ -750,35 +750,6 @@
 		<Folder>
 			<name>Jardines de Andalucía-Guadalupe, N.L.</name>
 			<Placemark>
-				<name>Jardines de Andalucía-Guadalupe, N.L. (S)</name>
-				<description><![CDATA[Descripción: Límite (Normal) <br>Guadalupe (Nuevo León) México<br><br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre:<br>Language: <br>Type: <br>formattedDate: <br>borderNorth: <br>borderEast: <br>borderSouth: <br>borderWest: <br>nombre: ]]></description>
-				<styleUrl>#poly-0055FF-901-0</styleUrl>
-				<Polygon>
-					<outerBoundaryIs>
-						<LinearRing>
-							<tessellate>1</tessellate>
-							<coordinates>
-								-100.18849,25.649191,0
-								-100.175192,25.645875,0
-								-100.175035,25.648515,0
-								-100.174055,25.650657,0
-								-100.170836,25.662402,0
-								-100.171709,25.662926,0
-								-100.171222,25.663861,0
-								-100.171121,25.664191,0
-								-100.171388,25.666235,0
-								-100.17367,25.666797,0
-								-100.175536,25.664634,0
-								-100.176274,25.663644,0
-								-100.178744,25.660723,0
-								-100.181213,25.657851,0
-								-100.18849,25.649191,0
-							</coordinates>
-						</LinearRing>
-					</outerBoundaryIs>
-				</Polygon>
-			</Placemark>
-			<Placemark>
 				<name>Parque Industrial La Silla-1</name>
 				<description><![CDATA[Empresas]]></description>
 				<styleUrl>#poly-BDBDBD-2000-255</styleUrl>
