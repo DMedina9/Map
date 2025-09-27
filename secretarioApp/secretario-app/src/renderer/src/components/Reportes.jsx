@@ -1,25 +1,44 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-const reportesPorMes = [
-    { mes: "Enero 2024", id: "2024-01" },
-    { mes: "Febrero 2024", id: "2024-02" },
-    { mes: "Marzo 2024", id: "2024-03" },
-    { mes: "Abril 2024", id: "2024-04" },
-    { mes: "Mayo 2024", id: "2024-05" },
-    { mes: "Junio 2024", id: "2024-06" },
-    // Agrega más meses según sea necesario
-];
+// Simulación de consulta a sqlite3 (reemplaza con tu lógica real)
+const fetchReportesPorMes = async () => {
+    // Aquí deberías consultar la base de datos sqlite3
+    // Ejemplo de datos simulados:
+    return [
+        { id: 1, mes: "Enero 2024", resumen: "Reporte de Enero", enlace: "/reportes/1" },
+        { id: 2, mes: "Febrero 2024", resumen: "Reporte de Febrero", enlace: "/reportes/2" },
+        { id: 3, mes: "Marzo 2024", resumen: "Reporte de Marzo", enlace: "/reportes/3" },
+    ];
+};
 
 const Reportes = () => {
+    const [reportes, setReportes] = useState([]);
+
+    useEffect(() => {
+        const cargarReportes = async () => {
+            const datos = await fetchReportesPorMes();
+            setReportes(datos);
+        };
+        cargarReportes();
+    }, []);
+
     return (
-        <div>
-            <h2>Reportes por Mes</h2>
-            <ul>
-                {reportesPorMes.map((reporte) => (
-                    <li key={reporte.id}>
-                        {reporte.mes}{" "}
-                        <Link to={`/reporte/${reporte.id}`}>Ver reporte</Link>
+        <div className="max-w-2xl mx-auto p-6">
+            <h1 className="text-2xl font-bold mb-6">Reportes por Mes</h1>
+            <ul className="space-y-4">
+                {reportes.map((reporte) => (
+                    <li key={reporte.id} className="bg-white shadow rounded p-4 flex justify-between items-center">
+                        <div>
+                            <div className="font-semibold">{reporte.mes}</div>
+                            <div className="text-gray-600">{reporte.resumen}</div>
+                        </div>
+                        <Link
+                            to={reporte.enlace}
+                            className="text-blue-600 hover:underline font-medium"
+                        >
+                            Ver reporte completo
+                        </Link>
                     </li>
                 ))}
             </ul>
