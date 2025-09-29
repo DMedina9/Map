@@ -58,28 +58,8 @@ export default function Publicadores() {
 			<h2 className="text-2xl font-bold mb-4 text-gray-800">Publicadores</h2>
 			<form onSubmit={handleSubmit} className="mb-6 space-y-4">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Nombre</label>
-						<input
-							type="text"
-							name="nombre"
-							value={form.nombre || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-							required
-						/>
-					</div>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Apellidos</label>
-						<input
-							type="text"
-							name="apellidos"
-							value={form.apellidos || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-							required
-						/>
-					</div>
+					<TextDataField desc="Nombre" name="nombre" form={form} handleChange={handleChange} required={true} />
+					<TextDataField desc="Apellidos" name="apellidos" form={form} handleChange={handleChange} required={true} />
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,16 +76,7 @@ export default function Publicadores() {
 							<option value="M">Femenino</option>
 						</select>
 					</div>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Fecha de nacimiento</label>
-						<input
-							type="date"
-							name="fecha_nacimiento"
-							value={form.fecha_nacimiento || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-						/>
-					</div>
+					<TextDataField desc="Fecha de nacimiento" name="fecha_nacimiento" form={form} handleChange={handleChange} type="date" />
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -118,16 +89,7 @@ export default function Publicadores() {
 							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
 						/>
 					</div>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Fecha de bautismo</label>
-						<input
-							type="date"
-							name="fecha_bautismo"
-							value={form.fecha_bautismo || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-						/>
-					</div>
+					<TextDataField desc="Fecha de bautismo" name="fecha_bautismo" form={form} handleChange={handleChange} type="date" />
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -184,38 +146,11 @@ export default function Publicadores() {
 					</div>
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Calle</label>
-						<input
-							type="text"
-							name="calle"
-							value={form.calle || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-						/>
-					</div>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Núm.</label>
-						<input
-							type="text"
-							name="num"
-							value={form.num || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-						/>
-					</div>
+					<TextDataField desc="Calle" name="calle" form={form} handleChange={handleChange} />
+					<TextDataField desc="Núm." name="num" form={form} handleChange={handleChange} />
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<label className="block text-gray-700">Colonia</label>
-						<input
-							type="text"
-							name="colonia"
-							value={form.colonia || ''}
-							onChange={handleChange}
-							className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
-						/>
-					</div>
+					<TextDataField desc="Colonia" name="colonia" form={form} handleChange={handleChange} />
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<label className="block text-gray-700">Teléfono fijo</label>
 						<input
@@ -330,6 +265,25 @@ export default function Publicadores() {
 					)}
 				</tbody>
 			</table>
+		</div>
+	)
+}
+function TextDataField(props) {
+	let { desc, name, form, handleChange, type, required } = props;
+	type = type || 'text';
+	required = required || false;
+	const value = form[name] || '';
+	return (
+		<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<label className="block text-gray-700">{desc}</label>
+			<input
+				type={type}
+				name={name}
+				value={value}
+				onChange={handleChange}
+				className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
+				required={required}
+			/>
 		</div>
 	)
 }

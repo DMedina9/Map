@@ -1,7 +1,7 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { initDb, allAsync } from './database/db.mjs'
+import initIPC from './ipc.js'
 //import icon from '../../resources/icon.png?asset'
 
 function createWindow() {
@@ -51,29 +51,8 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-  ipcMain.handle('get-publicadores', async (event) => {
-      try {
-          const db = await initDb();
-          const rows = await allAsync(db, `select
-              p.*,
-              case sup_grupo when 1 then 'Sup' when 2 then 'Aux' else null end as sup_grupo_desc,
-              pr.descripcion as privilegio,
-              tp.descripcion as tipo_publicador
-            from Publicadores p
-            left join Privilegio pr
-              on pr.id = p.id_privilegio
-            left join Tipo_Publicador tp
-              on tp.id = p.id_tipo_publicador
-            order by grupo, apellidos, nombre`);
-          await db.close();
-          return { success: true, data: rows };
-      } catch (error) {
-          console.error("Database query error:", error);
-          return { success: false, error: error.message };
-      }
-  });
+  initIPC();
+
   createWindow()
 
   app.on('activate', function () {
