@@ -9,7 +9,7 @@ export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') 
         await runAsync(db, `INSERT OR IGNORE INTO Privilegio (descripcion) VALUES (?)`, [privilegio.descripcion]);
     }
     const Privilegio = await allAsync(db, `SELECT * FROM Privilegio`);
-    console.log("Importado Privilegios", Privilegio);
+    console.log("Importado Privilegios");
 
     // Insertar tipos de publicador
     for (let tipo_Publicador of [ { descripcion: 'Publicador'}, { descripcion: 'Precursor regular' }, { descripcion: 'Precursor auxiliar' }]) {
@@ -17,7 +17,7 @@ export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') 
     }
     const Tipo_Publicador = await allAsync(db, `SELECT * FROM Tipo_Publicador`);
     // Mostrar los tipos de publicador importados
-    console.log("Importado Tipos de Publicador", Tipo_Publicador);
+    console.log("Importado Tipos de Publicador");
 
     const workbook = xlsx.readFile(filePath, { cellDates: true });
 
@@ -58,8 +58,8 @@ export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') 
       if (p.Nombre === 'Total') continue;
       let params = [
         publicador.id,
-        p.Mes instanceof Date ? p.Mes.toISOString() : null,
-        p['Mes enviado'] instanceof Date ? p['Mes enviado'].toISOString() : null,
+        p.Mes?.toISOString().substring(0,10),
+        p['Mes enviado']?.toISOString().substring(0,10),
         p['Predicó en el mes'] ? 1 : 0,
         p['Cursos bíblicos'],
         p['Tipo Publicador'] === "Publicador" ? 1 : p['Tipo Publicador'] === "Precursor regular" ? 2 : 3,
