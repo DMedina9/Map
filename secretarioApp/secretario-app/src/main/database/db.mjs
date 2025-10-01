@@ -65,7 +65,7 @@ const initDb = async () => {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS Asistencias (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fecha TEXT,
+      fecha TEXT UNIQUE,
       asistentes INTEGER
     );
   `);

@@ -4,6 +4,57 @@ import { initDb, allAsync } from './database/db.mjs'
 export default function initIPC() {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
+	ipcMain.handle('get-asistencias', async (event) => {
+		try {
+			const db = await initDb()
+			const rows = await allAsync(db, `select *, case when cast(strftime('%w', fecha) as integer) in (6,0) then 'Fin de semana' else 'Entresemana' end as tipo_asistencia from Asistencias order by fecha desc`)
+			await db.close()
+			return { success: true, data: rows }
+		} catch (error) {
+			console.error('Database query error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+	ipcMain.handle('add-asistencia', async (event, asistencia) => {
+		try {
+			const db = await initDb()
+			const stmt = await db.prepare(`insert or ignore into Asistencias (fecha, asistentes) values (?, ?)`)
+			const result = await stmt.run([asistencia.fecha, asistencia.asistentes])
+			await stmt.finalize()
+			await db.close()
+			return { success: true, lastID: result.lastID }
+		} catch (error) {
+			console.error('Database insert error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+	ipcMain.handle('update-asistencia', async (event, asistencia) => {
+		try {
+			const db = await initDb()
+			const stmt = await db.prepare(`update Asistencias set fecha = ?, asistentes = ? where id = ?`)
+			const result = await stmt.run([asistencia.fecha, asistencia.asistentes, asistencia.id])
+			await stmt.finalize()
+			await db.close()
+			return { success: true, changes: result.changes }
+		} catch (error) {
+			console.error('Database update error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+	ipcMain.handle('delete-asistencia', async (event, asistenciaId) => {
+		try {
+			const db = await initDb()
+			const stmt = await db.prepare(`delete from Asistencias where id = ?`)
+			const result = await stmt.run([asistenciaId])
+			await stmt.finalize()
+			await db.close()
+			return { success: true, changes: result.changes }
+		} catch (error) {
+			console.error('Database delete error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+
 	ipcMain.handle('get-publicadores', async (event) => {
 		try {
 			const db = await initDb()
@@ -54,6 +105,87 @@ export default function initIPC() {
 			return { success: false, error: error.message }
 		}
 	})
+	ipcMain.handle('add-informe', async (event, informe) => {
+		try {
+			const db = await initDb()
+			const stmt = await db.prepare(`insert into Informes
+			  (id_publicador,
+				mes,
+				mes_enviado,
+				predico_en_el_mes,
+				cursos_biblicos,
+				id_tipo_publicador,
+				horas,
+				notas,
+				horas_SS)
+			  values (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+			const result = await stmt.run([
+				informe.id_publicador,
+				informe.mes,
+				informe.mes_enviado,
+				informe.predico_en_el_mes,
+				informe.cursos_biblicos,
+				informe.id_tipo_publicador,
+				informe.horas,
+				informe.notas,
+				informe.horas_SS
+			])
+			await stmt.finalize()
+			await db.close()
+			return { success: true, lastID: result.lastID }
+		} catch (error) {
+			console.error('Database insert error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+	ipcMain.handle('update-informe', async (event, informe) => {
+		try {
+			const db = await initDb()
+			const stmt = await db.prepare(`update Informes set
+				id_publicador = ?,
+				mes = ?,
+				mes_enviado = ?,
+				predico_en_el_mes = ?,
+				cursos_biblicos = ?,
+				id_tipo_publicador = ?,
+				horas = ?,
+				notas = ?,
+				horas_SS = ?
+			  where id = ?`)
+			const result = await stmt.run([
+				informe.id_publicador,
+				informe.mes,
+				informe.mes_enviado,
+				informe.predico_en_el_mes,
+				informe.cursos_biblicos,
+				informe.id_tipo_publicador,
+				informe.horas,
+				informe.notas,
+				informe.horas_SS,
+				informe.id
+			])
+			await stmt.finalize()
+			await db.close()
+			return { success: true, changes: result.changes }
+		} catch (error) {
+			console.error('Database update error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+	ipcMain.handle('delete-informe', async (event, informeId) => {
+		try {
+			const db = await initDb()
+			const stmt = await db.prepare(`delete from Informes where id = ?`)
+			const result = await stmt.run([informeId])
+			await stmt.finalize()
+			await db.close()
+			return { success: true, changes: result.changes }
+		} catch (error) {
+			console.error('Database delete error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+
 	ipcMain.handle('get-privilegios', async (event) => {
 		try {
 			const db = await initDb()

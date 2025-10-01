@@ -1,129 +1,171 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Link, Route, Routes, useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react'
+import ButtonBar from './utils/ButtonBar'
+import { DataField } from './utils/DataFields'
 
-// Simulación de acceso a la base de datos sqlite3
-// Reemplaza esto por tu lógica real de acceso a la base de datos
-const fetchAsistencias = async () => {
-    // Ejemplo de datos simulados
-    return [
-        {
-            id: 1,
-            fecha: "2024-06-01",
-            tipo: "Entresemana",
-            cantidad: 15,
-        },
-        {
-            id: 2,
-            fecha: "2024-06-02",
-            tipo: "Fin de semana",
-            cantidad: 25,
-        },
-    ];
-};
+const fetchAsistencias = async () => await window.api.invoke('get-asistencias')
+const addAsistencia = async (asistencia) => await window.api.invoke('add-asistencia', asistencia)
+const updateAsistencia = async (id, asistencia) =>
+	await window.api.invoke('update-asistencia', { id, ...asistencia })
+const deleteAsistencia = async (id) => await window.api.invoke('delete-asistencia', id)
 
-function AsistenciasList() {
-    const [asistencias, setAsistencias] = useState([]);
-
-    useEffect(() => {
-        const cargarDatos = async () => {
-            const datos = await fetchAsistencias();
-            setAsistencias(datos);
-        };
-        cargarDatos();
-    }, []);
-
-    return (
-        <div className="max-w-2xl mx-auto p-4">
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Asistencias</h1>
-                <Link
-                    to="/asistencias/nueva"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                    Agregar asistencia
-                </Link>
-            </div>
-            <table className="w-full border rounded shadow">
-                <thead>
-                    <tr className="bg-gray-100">
-                        <th className="py-2 px-4 border">Fecha</th>
-                        <th className="py-2 px-4 border">Tipo</th>
-                        <th className="py-2 px-4 border">Cantidad</th>
-                        <th className="py-2 px-4 border">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {asistencias.map((asistencia) => (
-                        <tr key={asistencia.id} className="hover:bg-gray-50">
-                            <td className="py-2 px-4 border">{asistencia.fecha}</td>
-                            <td className="py-2 px-4 border">{asistencia.tipo}</td>
-                            <td className="py-2 px-4 border">{asistencia.cantidad}</td>
-                            <td className="py-2 px-4 border">
-                                <Link
-                                    to={`/asistencias/editar/${asistencia.id}`}
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    Editar
-                                </Link>
-                            </td>
-                        </tr>
-                    ))}
-                    {asistencias.length === 0 && (
-                        <tr>
-                            <td colSpan={4} className="py-4 text-center text-gray-500">
-                                No hay asistencias registradas.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
-    );
-}
-
-// Componentes de ejemplo para agregar y editar (puedes implementar la lógica real)
-function NuevaAsistencia() {
-    const navigate = useNavigate();
-    return (
-        <div className="max-w-md mx-auto p-4">
-            <h2 className="text-xl font-bold mb-4">Agregar Asistencia</h2>
-            {/* Formulario de ejemplo */}
-            <button
-                className="bg-gray-500 text-white px-4 py-2 rounded"
-                onClick={() => navigate("/asistencias")}
-            >
-                Volver
-            </button>
-        </div>
-    );
-}
-
-function EditarAsistencia() {
-    const navigate = useNavigate();
-    return (
-        <div className="max-w-md mx-auto p-4">
-            <h2 className="text-xl font-bold mb-4">Editar Asistencia</h2>
-            {/* Formulario de ejemplo */}
-            <button
-                className="bg-gray-500 text-white px-4 py-2 rounded"
-                onClick={() => navigate("/asistencias")}
-            >
-                Volver
-            </button>
-        </div>
-    );
+const initialForm = {
+	fecha: '',
+	asistentes: ''
 }
 
 export default function Asistencias() {
-    return (
-        <>
-            <Routes>
-                <Route path="/asistencias" element={<AsistenciasList />} />
-                <Route path="/asistencias/nueva" element={<NuevaAsistencia />} />
-                <Route path="/asistencias/editar/:id" element={<EditarAsistencia />} />
-                {/* Redirección por defecto */}
-                <Route path="*" element={<AsistenciasList />} />
-            </Routes>
-        </>
-    );
+	// Estado para los datos, filtro, edición y formulario
+	const [datos, setDatos] = useState([])
+	const [filtro, setFiltro] = useState('')
+	const [editandoId, setEditandoId] = useState(null)
+	const [form, setForm] = useState(initialForm)
+
+	// Carga los datos al montar el componente
+	useEffect(() => {
+		cargarAsistencias()
+	}, [])
+
+	// Maneja los cambios en el formulario
+	const handleChange = (e) => {
+		setForm({ ...form, [e.target.name]: e.target.value })
+	}
+
+	// Maneja el cambio del filtro de busqueda
+	const manejarFiltro = (e) => {
+		setFiltro(e.target.value)
+	}
+
+	// Filtra los datos para mostrar
+	const datosFiltrados = datos.filter((item) =>
+		`${item.fecha.substring(0, 10)} ${item.asistentes}`
+			.toLowerCase()
+			.includes(filtro.toLowerCase())
+	)
+
+	// Iniciar la edición de un registro
+	const iniciarEdicion = (item) => {
+		setEditandoId(item.id)
+		setForm({ ...item })
+	}
+	// Cargar asistencias desde la base de datos
+	const cargarAsistencias = async () => {
+		const { success, data } = await fetchAsistencias()
+		setDatos(success ? data : [])
+	}
+
+	const handleSubmit = async (e) => {
+		e.preventDefault()
+		if (editandoId > 0) {
+			await updateAsistencia(editandoId, form)
+		} else {
+			await addAsistencia(form)
+		}
+		await cargarAsistencias()
+		cancelarEdicion()
+	}
+	// Cancela la edición
+	const cancelarEdicion = () => {
+		setEditandoId(null)
+		setForm(initialForm)
+	}
+
+	return (
+		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			<ButtonBar
+				title="Asistencias"
+				editandoId={editandoId}
+				onSave={() => document.getElementById('frmEditor').requestSubmit()}
+				onCancel={cancelarEdicion}
+				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
+				onDelete={async () => {
+					if (window.confirm('¿Estás seguro de que deseas eliminar esta asistencia?')) {
+						await deleteAsistencia(editandoId)
+						await cargarAsistencias()
+						cancelarEdicion()
+					}
+				}}
+			/>
+			{!editandoId ? (
+				<div>
+					<input
+						type="search"
+						placeholder="Buscar por fecha/cantidad..."
+						value={filtro}
+						onChange={manejarFiltro}
+						className="w-full px-4 py-2 my-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+					/>
+					<div className="max-h-96 overflow-y-auto rounded-lg border shadow-md">
+						<table className="w-full table-auto border-collapse">
+							<thead className="sticky top-0 bg-white">
+								<tr className="bg-gray-100">
+									<th className="px-4 py-2 text-left">Fecha</th>
+									<th className="px-4 py-2 text-left">Tipo</th>
+									<th className="px-4 py-2 text-left">Asistencia</th>
+									<th className="px-4 py-2 text-left">Acciones</th>
+								</tr>
+							</thead>
+							<tbody>
+								{datosFiltrados.length > 0 ? (
+									datosFiltrados.map((item) => (
+										<tr
+											key={item.id}
+											className={
+												'border-b' +
+												(item.id === editandoId
+													? ' bg-blue-400 text-white'
+													: '')
+											}
+										>
+											<td className="px-4 py-2">{item.fecha.substring(0, 10)}</td>
+											<td className="px-4 py-2">
+												{item.tipo_asistencia}
+											</td>
+											<td className="px-4 py-2">
+												{item.asistentes}
+											</td>
+											<td className="px-4 py-2 space-x-2">
+												<button
+													className="bg-green-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
+													onClick={() => iniciarEdicion(item)}
+												>
+													Editar
+												</button>
+											</td>
+										</tr>
+									))
+								) : (
+									<tr>
+										<td colSpan="3" className="text-center py-4 text-gray-500">
+											No hay asistencias registradas.
+										</td>
+									</tr>
+								)}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			) : (
+				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">
+					<div className="p-6 bg-white rounded shadow-md w-full mx-auto">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							<DataField
+								desc="Fecha"
+								name="fecha"
+								form={form}
+								handleChange={handleChange}
+								type="date"
+							/>
+							<DataField
+								desc="Asistentes"
+								name="asistentes"
+								form={form}
+								handleChange={handleChange}
+								type="number"
+							/>
+						</div>
+					</div>
+				</form>
+			)}
+		</div>
+	)
 }

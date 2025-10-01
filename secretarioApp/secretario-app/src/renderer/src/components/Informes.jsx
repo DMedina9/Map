@@ -10,11 +10,12 @@ const updateInforme = async (id, informe) =>
 const deleteInforme = async (id) => await window.api.invoke('delete-informe', id)
 
 const initialForm = {
-	nombre: '',
-	grupo: '',
-	id_tipo_informe: '',
-	id_privilegio: '',
-	sup_grupo: false
+	id_publicador: '',
+	mes: '',
+	mes_enviado: '',
+	participo_en_el_mes: '',
+	horas: '',
+	notas: ''
 }
 
 export default function Informes() {
@@ -91,8 +92,8 @@ export default function Informes() {
 				onDelete={async () => {
 					if (window.confirm('¿Estás seguro de que deseas eliminar este informe?')) {
 						await deleteInforme(editandoId)
+						await cargarInformes()
 						cancelarEdicion()
-						cargarInformes()
 					}
 				}}
 			/>
@@ -217,6 +218,13 @@ export default function Informes() {
 							<DataField
 								desc="Horas"
 								name="horas"
+								form={form}
+								handleChange={handleChange}
+								type="number"
+							/>
+							<DataField
+								desc="Horas Servicio Sagrado"
+								name="horas_SS"
 								form={form}
 								handleChange={handleChange}
 								type="number"

@@ -1,12 +1,12 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import logo from './../assets/logo.png'
-
-// Componentes de ejemplo (puedes reemplazarlos por tus propios componentes)
 import Publicadores from './Publicadores'
 import Informes from './Informes'
 import Asistencias from './Asistencias'
 import Reportes from './Reportes'
+import S1 from './Reportes/S1'
+import S3 from './Reportes/S3'
+import S88 from './Reportes/S88'
 
 const Menu = () => (
 	<>
@@ -61,6 +61,9 @@ const Menu = () => (
 			<Route path="/informes" element={<Informes />} />
 			<Route path="/asistencias" element={<Asistencias />} />
 			<Route path="/reportes" element={<Reportes />} />
+			<Route path="/reportes/S1" element={<S1 />} />
+			<Route path="/reportes/S3" element={<S3 />} />
+			<Route path="/reportes/S88" element={<S88 />} />
 		</Routes>
 	</>
 )

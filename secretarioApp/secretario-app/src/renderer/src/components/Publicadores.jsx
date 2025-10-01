@@ -81,8 +81,8 @@ export default function Publicadores() {
 				onDelete={async () => {
 					if (window.confirm('¿Estás seguro de que deseas eliminar este publicador?')) {
 						await deletePublicador(editandoId)
+						await cargarPublicadores()
 						cancelarEdicion()
-						cargarPublicadores()
 					}
 				}}
 			/>
