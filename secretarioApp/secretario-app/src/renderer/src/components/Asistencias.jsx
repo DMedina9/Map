@@ -162,6 +162,13 @@ export default function Asistencias() {
 								handleChange={handleChange}
 								type="number"
 							/>
+							<DataField
+								desc="Notas"
+								name="notas"
+								form={form}
+								handleChange={handleChange}
+								type="text"
+							/>
 						</div>
 					</div>
 				</form>

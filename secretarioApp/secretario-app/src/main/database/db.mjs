@@ -66,7 +66,8 @@ const initDb = async () => {
     CREATE TABLE IF NOT EXISTS Asistencias (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       fecha TEXT UNIQUE,
-      asistentes INTEGER
+      asistentes INTEGER,
+      notas TEXT
     );
   `);
 

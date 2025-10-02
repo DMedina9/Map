@@ -326,4 +326,93 @@ export default function initIPC() {
 			return { success: false, error: error.message }
 		}
 	})
+	ipcMain.handle('get-S3', async (event, anio) => {
+		console.log('Año recibido en IPC:', anio)
+		// Validar año
+		if (!anio || isNaN(anio) || anio < 2020) {
+			return { success: false, error: 'Año inválido' }
+		}
+		try {
+			const db = await initDb()
+			const rows = await allAsync(db, `WITH weekdays AS (
+					SELECT fecha, asistentes,
+						CAST(STRFTIME('%Y', fecha) AS INTEGER) AS year,
+						CAST(STRFTIME('%m', fecha) AS INTEGER) AS month,
+						CAST(STRFTIME('%w', fecha) AS INTEGER) AS day_of_week,
+						CASE STRFTIME('%m', fecha)
+							WHEN '01' THEN 'Enero'
+							WHEN '02' THEN 'Febrero'
+							WHEN '03' THEN 'Marzo'
+							WHEN '04' THEN 'Abril'
+							WHEN '05' THEN 'Mayo'
+							WHEN '06' THEN 'Junio'
+							WHEN '07' THEN 'Julio'
+							WHEN '08' THEN 'Agosto'
+							WHEN '09' THEN 'Septiembre'
+							WHEN '10' THEN 'Octubre'
+							WHEN '11' THEN 'Noviembre'
+							WHEN '12' THEN 'Diciembre'
+						END AS month_name
+					FROM Asistencias
+					WHERE CAST(STRFTIME('%w', fecha) AS INTEGER) NOT IN (0,6)
+				),
+				weekdays_numbered AS (
+					SELECT *, cast(STRFTIME('%W', fecha) as integer) - cast(STRFTIME('%W', date(STRFTIME('%Y-%m-01', fecha))) as integer) + 1 AS week_of_month
+					FROM weekdays
+				),
+				weekends AS (
+					SELECT fecha, asistentes,
+						CAST(STRFTIME('%Y', fecha) AS INTEGER) AS year,
+						CAST(STRFTIME('%m', fecha) AS INTEGER) AS month,
+						CAST(STRFTIME('%w', fecha) AS INTEGER) AS day_of_week,
+						CASE STRFTIME('%m', fecha)
+							WHEN '01' THEN 'Enero'
+							WHEN '02' THEN 'Febrero'
+							WHEN '03' THEN 'Marzo'
+							WHEN '04' THEN 'Abril'
+							WHEN '05' THEN 'Mayo'
+							WHEN '06' THEN 'Junio'
+							WHEN '07' THEN 'Julio'
+							WHEN '08' THEN 'Agosto'
+							WHEN '09' THEN 'Septiembre'
+							WHEN '10' THEN 'Octubre'
+							WHEN '11' THEN 'Noviembre'
+							WHEN '12' THEN 'Diciembre'
+						END AS month_name
+					FROM Asistencias
+					WHERE CAST(STRFTIME('%w', fecha) AS INTEGER) IN (0,6)
+				),
+				weekends_numbered AS (
+					SELECT *, cast(STRFTIME('%W', fecha) as integer) - cast(STRFTIME('%W', date(STRFTIME('%Y-%m-01', fecha))) as integer) + 1 AS week_of_month
+					FROM weekends
+				),
+				tb_temporal AS (
+					SELECT es.year, es.month, es.month_name || ' ' || es.year as mes,
+						sum(case when es.week_of_month = 1 then es.asistentes else null end) as es_semana_1,
+						sum(case when es.week_of_month = 2 then es.asistentes else null end) as es_semana_2,
+						sum(case when es.week_of_month = 3 then es.asistentes else null end) as es_semana_3,
+						sum(case when es.week_of_month = 4 then es.asistentes else null end) as es_semana_4,
+						sum(case when es.week_of_month = 5 then es.asistentes else null end) as es_semana_5,
+						sum(case when fs.week_of_month = 1 then fs.asistentes else null end) as fs_semana_1,
+						sum(case when fs.week_of_month = 2 then fs.asistentes else null end) as fs_semana_2,
+						sum(case when fs.week_of_month = 3 then fs.asistentes else null end) as fs_semana_3,
+						sum(case when fs.week_of_month = 4 then fs.asistentes else null end) as fs_semana_4,
+						sum(case when fs.week_of_month = 5 then fs.asistentes else null end) as fs_semana_5
+					FROM weekdays_numbered es
+					inner join weekends_numbered fs
+						on es.year = fs.year
+						and es.month = fs.month
+						and es.week_of_month = fs.week_of_month
+					group by es.year, es.month
+				)
+				SELECT row_number() over(order by year, month) as id, case when month > 8 then 1 else 0 end + year as anio_servicio, * FROM tb_temporal
+				where case when month > 8 then 1 else 0 end + year = ${anio}
+				ORDER BY year, month`)
+			await db.close()
+			return { success: true, data: rows }
+		} catch (error) {
+			console.error('Database query error:', error)
+			return { success: false, error: error.message }
+		}
+	})
 }
