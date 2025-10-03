@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import ButtonBar from './utils/ButtonBar'
 import { DataField, DataFieldSelect } from './utils/DataFields'
+import Alert from './utils/Alert'
+import Loading from './utils/Loading' // Importa el componente Loading
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const fetchInformes = async () => await window.api.invoke('get-informes')
@@ -25,11 +27,18 @@ export default function Informes() {
 	const [filtro, setFiltro] = useState('')
 	const [editandoId, setEditandoId] = useState(null)
 	const [form, setForm] = useState(initialForm)
+	const [showAlert, setShowAlert] = useState(false)
+    const [loading, setLoading] = useState(true) // Estado para loading
 
 	// Carga los datos al montar el componente
 	useEffect(() => {
-		cargarInformes()
-		cargarPublicadores()
+		const cargarTodo = async () => {
+            setLoading(true)
+            await cargarInformes()
+            await cargarPublicadores()
+            setLoading(false)
+        }
+        cargarTodo()
 	}, [])
 
 	// Maneja los cambios en el formulario
@@ -83,19 +92,26 @@ export default function Informes() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			{loading && <Loading />} {/* Muestra Loading mientras loading es true */}
 			<ButtonBar
 				title="Informes"
 				editandoId={editandoId}
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
-				onDelete={async () => {
-					if (window.confirm('¿Estás seguro de que deseas eliminar este informe?')) {
-						await deleteInforme(editandoId)
-						await cargarInformes()
-						cancelarEdicion()
-					}
+				onDelete={() => setShowAlert(true)}
+			/>
+			<Alert
+				type="confirm"
+				message="¿Estás seguro de que deseas eliminar este informe?"
+				show={showAlert}
+				onConfirm={async () => {
+					await deleteInforme(editandoId)
+					await cargarInformes()
+					cancelarEdicion()
+					setShowAlert(false)
 				}}
+				onCancel={() => setShowAlert(false)}
 			/>
 			{!editandoId ? (
 				<div>

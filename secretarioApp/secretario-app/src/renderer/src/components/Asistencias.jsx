@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import ButtonBar from './utils/ButtonBar'
 import { DataField } from './utils/DataFields'
+import Alert from './utils/Alert'
+import Loading from './utils/Loading' // Importa el componente Loading
 
 const fetchAsistencias = async () => await window.api.invoke('get-asistencias')
 const addAsistencia = async (asistencia) => await window.api.invoke('add-asistencia', asistencia)
@@ -19,6 +21,8 @@ export default function Asistencias() {
 	const [filtro, setFiltro] = useState('')
 	const [editandoId, setEditandoId] = useState(null)
 	const [form, setForm] = useState(initialForm)
+	const [showAlert, setShowAlert] = useState(false)
+	const [loading, setLoading] = useState(true) // Estado para loading
 
 	// Carga los datos al montar el componente
 	useEffect(() => {
@@ -49,8 +53,10 @@ export default function Asistencias() {
 	}
 	// Cargar asistencias desde la base de datos
 	const cargarAsistencias = async () => {
+		setLoading(true)
 		const { success, data } = await fetchAsistencias()
 		setDatos(success ? data : [])
+		setLoading(false)
 	}
 
 	const handleSubmit = async (e) => {
@@ -71,19 +77,26 @@ export default function Asistencias() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			{loading && <Loading />} {/* Muestra Loading mientras loading es true */}
 			<ButtonBar
 				title="Asistencias"
 				editandoId={editandoId}
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
-				onDelete={async () => {
-					if (window.confirm('¿Estás seguro de que deseas eliminar esta asistencia?')) {
-						await deleteAsistencia(editandoId)
-						await cargarAsistencias()
-						cancelarEdicion()
-					}
+				onDelete={() => setShowAlert(true)}
+			/>
+			<Alert
+				type="confirm"
+				message="¿Estás seguro de que deseas eliminar esta asistencia?"
+				show={showAlert}
+				onConfirm={async () => {
+					await deleteAsistencia(editandoId)
+					await cargarAsistencias()
+					cancelarEdicion()
+					setShowAlert(false)
 				}}
+				onCancel={() => setShowAlert(false)}
 			/>
 			{!editandoId ? (
 				<div>
@@ -116,13 +129,11 @@ export default function Asistencias() {
 													: '')
 											}
 										>
-											<td className="px-4 py-2">{item.fecha.substring(0, 10)}</td>
 											<td className="px-4 py-2">
-												{item.tipo_asistencia}
+												{item.fecha.substring(0, 10)}
 											</td>
-											<td className="px-4 py-2">
-												{item.asistentes}
-											</td>
+											<td className="px-4 py-2">{item.tipo_asistencia}</td>
+											<td className="px-4 py-2">{item.asistentes}</td>
 											<td className="px-4 py-2 space-x-2">
 												<button
 													className="bg-green-400 text-white px-2 py-1 rounded hover:bg-yellow-500"

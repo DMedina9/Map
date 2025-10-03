@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import ButtonBar from './utils/ButtonBar'
 import { DataField, DataFieldSelect } from './utils/DataFields'
+import Alert from './utils/Alert'
+import Loading from './utils/Loading' // Importa el componente Loading
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const addPublicador = async (publicador) => await window.api.invoke('add-publicador', publicador)
@@ -22,6 +24,8 @@ export default function Publicadores() {
 	const [filtro, setFiltro] = useState('')
 	const [editandoId, setEditandoId] = useState(null)
 	const [form, setForm] = useState(initialForm)
+	const [showAlert, setShowAlert] = useState(false)
+    const [loading, setLoading] = useState(true) // Estado para loading
 
 	// Carga los datos al montar el componente
 	useEffect(() => {
@@ -50,8 +54,10 @@ export default function Publicadores() {
 	}
 	// Cargar publicadores desde la base de datos
 	const cargarPublicadores = async () => {
+		setLoading(true)
 		const { success, data } = await fetchPublicadores()
 		setDatos(success ? data : [])
+        setLoading(false)
 	}
 
 	const handleSubmit = async (e) => {
@@ -72,6 +78,7 @@ export default function Publicadores() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			{loading && <Loading />}
 			<ButtonBar
 				title="Publicadores"
 				editandoId={editandoId}
@@ -85,6 +92,18 @@ export default function Publicadores() {
 						cancelarEdicion()
 					}
 				}}
+			/>
+			<Alert
+				type="confirm"
+				message="¿Estás seguro de que deseas eliminar este publicador?"
+				show={showAlert}
+				onConfirm={async () => {
+					await deletePublicador(editandoId)
+					await cargarPublicadores()
+					cancelarEdicion()
+					setShowAlert(false)
+				}}
+				onCancel={() => setShowAlert(false)}
 			/>
 			{!editandoId ? (
 				<div>

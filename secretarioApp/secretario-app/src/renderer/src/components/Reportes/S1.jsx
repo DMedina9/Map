@@ -1,49 +1,80 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React from "react";
 
-// Simulación de consulta a sqlite3 (reemplaza con tu lógica real)
-const fetchReportesPorMes = async () => {
-    // Aquí deberías consultar la base de datos sqlite3
-    // Ejemplo de datos simulados:
-    return [
-        { id: 1, mes: "Enero 2024", resumen: "Reporte de Enero", enlace: "/reportes/1" },
-        { id: 2, mes: "Febrero 2024", resumen: "Reporte de Febrero", enlace: "/reportes/2" },
-        { id: 3, mes: "Marzo 2024", resumen: "Reporte de Marzo", enlace: "/reportes/3" },
-    ];
-};
+export default function S1() {
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8">
+        
+        {/* Encabezado */}
+        <h1 className="text-2xl font-bold text-center text-gray-800">
+          PREDICACIÓN Y ASISTENCIA A LAS REUNIONES (S-1)
+        </h1>
+        <p className="text-center text-gray-600 mt-1">Agosto de 2025</p>
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Introduzca el informe y haga clic en Enviar.
+        </p>
 
-const S1 = () => {
-    const [reportes, setReportes] = useState([]);
-
-    useEffect(() => {
-        const cargarReportes = async () => {
-            const datos = await fetchReportesPorMes();
-            setReportes(datos);
-        };
-        cargarReportes();
-    }, []);
-
-    return (
-        <div className="max-w-2xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Reportes por Mes</h1>
-            <ul className="space-y-4">
-                {reportes.map((reporte) => (
-                    <li key={reporte.id} className="bg-white shadow rounded p-4 flex justify-between items-center">
-                        <div>
-                            <div className="font-semibold">{reporte.mes}</div>
-                            <div className="text-gray-600">{reporte.resumen}</div>
-                        </div>
-                        <Link
-                            to={reporte.enlace}
-                            className="text-blue-600 hover:underline font-medium"
-                        >
-                            Ver reporte completo
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+        {/* Formulario estilo tabla */}
+        <div className="overflow-x-auto">
+          <table className="w-full border border-gray-300 rounded-lg text-sm">
+            <thead className="bg-gray-200 text-gray-700">
+              <tr>
+                <th className="p-2 border border-gray-300 text-left">Concepto</th>
+                <th className="p-2 border border-gray-300 text-center">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="p-2 border border-gray-300">Publicadores activos</td>
+                <td className="p-2 border border-gray-300 text-center">
+                  <input
+                    type="number"
+                    className="w-24 p-1 border rounded text-center"
+                    defaultValue={0}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-gray-300">Estudios bíblicos</td>
+                <td className="p-2 border border-gray-300 text-center">
+                  <input
+                    type="number"
+                    className="w-24 p-1 border rounded text-center"
+                    defaultValue={0}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-gray-300">Horas Totales</td>
+                <td className="p-2 border border-gray-300 text-center">
+                  <input
+                    type="number"
+                    className="w-24 p-1 border rounded text-center"
+                    defaultValue={0}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td className="p-2 border border-gray-300">Asistencia media a reuniones</td>
+                <td className="p-2 border border-gray-300 text-center">
+                  <input
+                    type="number"
+                    className="w-24 p-1 border rounded text-center"
+                    defaultValue={0}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-    );
-};
 
-export default S1;
+        {/* Botón */}
+        <div className="mt-6 flex justify-center">
+          <button className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-xl shadow hover:bg-blue-700 transition">
+            Enviar Informe
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
