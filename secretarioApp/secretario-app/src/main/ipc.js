@@ -363,7 +363,8 @@ export default function initIPC() {
 				SELECT (month + 3) % 12 + 1 as id, case when month > 8 then 1 else 0 end + year as anio_servicio, * FROM tb_temporal
 				where case when month > 8 then 1 else 0 end + year = ?
 				and type = ?
-				ORDER BY year, month`, [anio, type]
+				ORDER BY year, month`,
+				[anio, type]
 			)
 			await db.close()
 			return { success: true, data: rows }
@@ -400,6 +401,117 @@ export default function initIPC() {
 `,
 				[anio, type]
 			)
+			await db.close()
+			return { success: true, data: rows }
+		} catch (error) {
+			console.error('Database query error:', error)
+			return { success: false, error: error.message }
+		}
+	})
+	ipcMain.handle('get-S1', async (event, month) => {
+		// Validar mes
+		if (!month || !/^\d{4}-\d{2}-\d{2}$/.test(month)) {
+			return { success: false, error: 'Mes inválido' }
+		}
+		console.log(month)
+		try {
+			const db = await initDb()
+
+			let rows = await allAsync(
+				db,
+				`select count(1) as activos
+				from Publicadores p
+				where (select sum(predico_en_el_mes)
+					from Informes i
+					where i.id_publicador = p.id
+					and date(i.mes) between date(?, '-5 months') and date(?)) > 0
+			`,
+				[month, month]
+			);
+			const activos = rows[0]?.activos
+			rows = await allAsync(
+				db,
+				`select
+					sum(asistentes) / count(1) as asistencia_promedio
+				from Asistencias
+				where asistentes is not null
+				and cast(STRFTIME('%w', fecha) as integer) IN (0,6)
+				and strftime('%Y-%m-01', fecha) = ?
+			`,
+				[month]
+			);
+			const asistencia_promedio = rows[0]?.asistencia_promedio
+			rows = await allAsync(
+				db,
+				`with tmpEncabezadosS1 as (
+	select row_number() over (order by case id when 2 then 3 when 3 then 2 else id end) as id, titulo
+	from (
+		select 0 as id, '' as titulo
+		union all
+		select id, replace(descripcion, 'sor', 'sores') || 'es' as titulo
+		from Tipo_Publicador
+	) a
+)
+select * from tmpEncabezadosS1
+order by id;`)
+			const subsecciones = await allAsync(
+				db,
+				`select case tp.id when 2 then 3 when 3 then 2 else tp.id end + 1 as id, count(1) as cantidad, sum(horas) as horas, sum(cursos_biblicos) as cursos_biblicos
+	from Informes i
+	inner join Tipo_publicador tp
+		on tp.id = i.id_tipo_publicador
+	where i.predico_en_el_mes = 1
+	and i.mes = ?
+	group by tp.id
+	order by case tp.id when 2 then 3 when 3 then 2 else tp.id end`,
+				[month]
+			)
+			rows[0].subsecciones = [
+				{
+					label: 'Publicadores activos',
+					descripcion:
+						'Cuente todas las personas de la congregación que informaron alguna participación en el ministerio un mes o más durante los pasados seis meses.',
+					valor: activos
+				},
+				{
+					label: 'Promedio de asistencia a las reuniones del fin de semana',
+					valor: asistencia_promedio
+				}
+			]
+			let subseccion = subsecciones.find((value, index) => value.id == 2)
+			rows[1].subsecciones = [
+				{
+					label: 'Cantidad de informes',
+					valor: subseccion ? subseccion.cantidad : 0
+				},
+				{
+					label: 'Cursos bíblicos',
+					valor: subseccion ? subseccion.cursos_biblicos : 0
+				}
+			]
+			subseccion = subsecciones.find((value, index) => value.id == 3)
+			rows[2].subsecciones = [
+				{
+					label: 'Cantidad de informes',
+					valor: subseccion ? subseccion.cantidad : 0
+				},
+				{ label: 'Horas', valor: subseccion ? subseccion.horas : 0 },
+				{
+					label: 'Cursos bíblicos',
+					valor: subseccion ? subseccion.cursos_biblicos : 0
+				}
+			]
+			rows[3].subsecciones = [
+				{
+					label: 'Cantidad de informes',
+					valor: subseccion ? subseccion.cantidad : 0
+				},
+				{ label: 'Horas', valor: subseccion ? subseccion.horas : 0 },
+				{
+					label: 'Cursos bíblicos',
+					valor: subseccion ? subseccion.cursos_biblicos : 0
+				}
+			]
 			await db.close()
 			return { success: true, data: rows }
 		} catch (error) {

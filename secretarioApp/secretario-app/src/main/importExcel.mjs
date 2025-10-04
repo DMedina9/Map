@@ -105,7 +105,7 @@ export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') 
 			p.Notas,
 			p['Horas S. S. (PR)'],
 			publicador.id,
-			p.Mes instanceof Date ? p.Mes.toISOString() : null
+			p.Mes instanceof Date ? p.Mes.toISOString().substring(0, 10) : null
 		]
 		await runAsync(
 			db,
