@@ -501,6 +501,7 @@ order by id;`)
 					valor: subseccion ? subseccion.cursos_biblicos : 0
 				}
 			]
+			subseccion = subsecciones.find((value, index) => value.id == 4)
 			rows[3].subsecciones = [
 				{
 					label: 'Cantidad de informes',
