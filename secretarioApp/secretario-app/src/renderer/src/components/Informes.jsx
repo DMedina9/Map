@@ -5,7 +5,7 @@ import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
-const fetchInformes = async () => await window.api.invoke('get-informes')
+const fetchInformes = async () => await window.api.invoke('get-informes', ["", "", ""])
 const addInforme = async (informe) => await window.api.invoke('add-informe', informe)
 const updateInforme = async (id, informe) =>
 	await window.api.invoke('update-informe', { id, ...informe })

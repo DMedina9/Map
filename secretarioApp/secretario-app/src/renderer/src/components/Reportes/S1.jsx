@@ -8,6 +8,21 @@ if (Date.prototype.addMonths == undefined) {
 		return this
 	}
 }
+const MONTHS = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre'
+]
+
 export default function S1() {
 	const lastMonth = new Date().addMonths(-2)
 	const month =
@@ -32,7 +47,7 @@ export default function S1() {
 				PREDICACIÓN Y ASISTENCIA A LAS REUNIONES <span className="hidden">(S-1)</span>
 			</div>
 			<div className="bg-gray-100 text-gray-600 text-2xl font-normal px-6 py-2">
-				Agosto de 2025
+				{MONTHS[lastMonth.getMonth()]} de {lastMonth.getFullYear()}
 			</div>
 			<div className="px-6 py-2 italic text-gray-500">
 				Introduzca el informe y haga clic en{' '}

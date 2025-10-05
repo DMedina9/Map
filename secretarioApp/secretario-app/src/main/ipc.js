@@ -86,7 +86,7 @@ export default function initIPC() {
 			return { success: false, error: error.message }
 		}
 	})
-	ipcMain.handle('get-informes', async (event) => {
+	ipcMain.handle('get-informes', async (event, [anio_servicio, id_publicador, dir]) => {
 		try {
 			const db = await initDb()
 			const rows = await allAsync(
@@ -103,7 +103,10 @@ export default function initIPC() {
 				on i.id_Publicador = p.id
 			left join Tipo_Publicador tp
 				on tp.id = i.id_tipo_publicador
-			order by i.mes desc, p.apellidos, p.nombre`
+			where 1 = 1
+			${anio_servicio && `and case when cast(strftime('%m', i.mes) as integer) > 8 then 1 else 0 end + cast(strftime('%Y', i.mes) as integer) = ${anio_servicio}`}
+			${id_publicador && `and p.id = ${id_publicador}`}
+			order by i.mes ${(dir === undefined ? 'desc' : dir)}, p.apellidos, p.nombre`
 			)
 			await db.close()
 			return { success: true, data: rows }

@@ -115,7 +115,6 @@ async function GenerarS21Totales(anio, id_tipo_publicador = null) {
 
 		form.getTextField(dataFields['Año de servicio']).setText(anio.toString());
 
-		let estatus;
 		const Informes = await allAsync(db, `select mes, 1 as predico_en_el_mes, sum(i.cursos_biblicos) as cursos_biblicos, tp.descripcion as tipo_publicador, sum(horas) as horas, count(1) as notas,
 				(cast(strftime('%m', mes) as integer) + 3) % 12 + 1 as iNumMes
 			from Informes i

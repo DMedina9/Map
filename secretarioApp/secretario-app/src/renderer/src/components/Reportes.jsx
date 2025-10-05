@@ -11,6 +11,9 @@ const Reportes = () => (
 					<Link to="/reportes/S3" className="text-white hover:text-gray-400">
 						S-3
 					</Link>
+					<Link to="/reportes/S21" className="text-white hover:text-gray-400">
+						S-21
+					</Link>
 					<Link to="/reportes/S88" className="text-white hover:text-gray-400">
 						S-88
 					</Link>

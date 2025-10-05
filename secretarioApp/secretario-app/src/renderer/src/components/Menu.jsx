@@ -3,9 +3,9 @@ import logo from './../assets/logo.png'
 import Publicadores from './Publicadores'
 import Informes from './Informes'
 import Asistencias from './Asistencias'
-import Reportes from './Reportes'
 import S1 from './Reportes/S1'
 import S3 from './Reportes/S3'
+import S21 from './Reportes/S21'
 import S88 from './Reportes/S88'
 
 const Menu = () => (
@@ -13,9 +13,6 @@ const Menu = () => (
 		<nav className="bg-gray-800 p-4">
 			<div className="container mx-auto flex justify-between items-center">
 				<img src={logo} alt="Secretario Logo" className="w-14 h-14" />
-				{/*<a href="#" className="text-white text-xl font-bold">
-					Secretario
-				</a>*/}
 				<button
 					id="menu-btn"
 					className="block md:hidden text-white focus:outline-none"
@@ -41,28 +38,63 @@ const Menu = () => (
 				</button>
 
 				<div id="menu" className="hidden md:flex space-x-4">
-					<Link to="/publicadores" className="text-white hover:text-gray-400">
-						Publicadores
-					</Link>
-					<Link to="/informes" className="text-white hover:text-gray-400">
-						Informes
-					</Link>
-					<Link to="/asistencias" className="text-white hover:text-gray-400">
-						Asistencias
-					</Link>
-					<Link to="/reportes" className="text-white hover:text-gray-400">
-						Reportes
-					</Link>
+					<ul className="flex space-x-4">
+						<li>
+							<Link to="/" className="text-white hover:text-gray-400">Inicio</Link>
+						</li>
+						<li>
+							<Link to="/publicadores" className="text-white hover:text-gray-400">
+								Publicadores
+							</Link>
+						</li>
+						<li>
+							<Link to="/informes" className="text-white hover:text-gray-400">
+								Informes
+							</Link>
+						</li>
+						<li>
+							<Link to="/asistencias" className="text-white hover:text-gray-400">
+								Asistencias
+							</Link>
+						</li>
+						<li className="relative group">
+							<button className="text-white hover:text-gray-400">Reportes</button>
+							{/* Submenú */}
+							<ul className="absolute left-0 mt-2 bg-gray-800 text-white shadow-lg rounded hidden group-hover:block w-100">
+								<li>
+									<Link to="/reportes/S1" className="block px-4 py-2 hover:bg-gray-200 hover:text-black">
+										S-1
+									</Link>
+								</li>
+								<li>
+									<Link to="/reportes/S3" className="block px-4 py-2 hover:bg-gray-200 hover:text-black">
+										S-3
+									</Link>
+								</li>
+								<li>
+									<Link to="/reportes/S21" className="block px-4 py-2 hover:bg-gray-200 hover:text-black">
+										S-21
+									</Link>
+								</li>
+								<li>
+									<Link to="/reportes/S88" className="block px-4 py-2 hover:bg-gray-200 hover:text-black">
+										S-88
+									</Link>
+								</li>
+							</ul>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</nav>
 		<Routes>
+			<Route path="/" element={<Publicadores />} />
 			<Route path="/publicadores" element={<Publicadores />} />
 			<Route path="/informes" element={<Informes />} />
 			<Route path="/asistencias" element={<Asistencias />} />
-			<Route path="/reportes" element={<Reportes />} />
 			<Route path="/reportes/S1" element={<S1 />} />
 			<Route path="/reportes/S3" element={<S3 />} />
+			<Route path="/reportes/S21" element={<S21 />} />
 			<Route path="/reportes/S88" element={<S88 />} />
 		</Routes>
 	</>
