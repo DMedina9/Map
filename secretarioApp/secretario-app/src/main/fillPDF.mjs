@@ -94,7 +94,7 @@ const dataFields = {
 };
 
 // Ruta del archivo PDF
-const rutaPDF = __dirname + '\\PDF\\S-21_S.pdf';
+const rutaPDF = __dirname + '\\..\\..\\resources\\PDF\\S-21_S.pdf';
 //console.log(rutaPDF);
 
 async function GenerarS21Totales(anio, id_tipo_publicador = null) {
@@ -158,7 +158,12 @@ async function GenerarS21Totales(anio, id_tipo_publicador = null) {
 	}
 }
 // Generar y exportar el PDF rellenado
-async function GenerarS21(anio, id_publicador = null) {
+async function GenerarS21(anio, id_publicador = null, fileDir = null) {
+	if (!fileDir)
+		fileDir = "./Tarjetas actuales";
+	fileDir += "/";
+
+	const filePaths = [];
 	//GenerarS21Totales(anio).catch((err) => console.error(err));
 	// Conectar a la base de datos
 	const db = await initDb();
@@ -250,8 +255,8 @@ async function GenerarS21(anio, id_publicador = null) {
 		// Guardar el PDF modificado
 		await pdfDoc.save({ useObjectStreams: false });
 		const pdfBytes = await pdfDoc.save({ useObjectStreams: true });
-		//const pdfBytes = await pdfDoc.save();
-		let dir = "./Tarjetas actuales/";
+
+		let dir = fileDir;
 		if (estatus === "Activo")
 			dir += `02 Activos/${(publicador.tipo_publicador === 'Precursor regular' ? "01 Precursores regulares" : "02 Publicadores por grupo/Grupo " + publicador.grupo)}`;
 		else
@@ -260,10 +265,11 @@ async function GenerarS21(anio, id_publicador = null) {
 		if (!fs.existsSync(dir)) {
 			fs.mkdirSync(dir, { recursive: true });
 		}
-		fs.writeFileSync(`${dir}/S-21-S - ${anio} - ${publicador.apellidos}, ${publicador.nombre}.pdf`, pdfBytes)
-		console.log(`S-21 (${anio}) generado para ${publicador.nombre} ${publicador.apellidos}`);
-		//await shell.openPath(`${dir}/S-21-S - ${publicador.apellidos}, ${publicador.nombre}.pdf`);
+		const filePath = `${dir}/S-21-S - ${anio} - ${publicador.apellidos}, ${publicador.nombre}.pdf`;
+		fs.writeFileSync(filePath, pdfBytes);
+		filePaths.push(filePath);
 	}
+	return { success: true, filePaths };
 }
 function getDateFormat(date) {
 	date = date.substring(0, 10);

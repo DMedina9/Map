@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Alert from './../utils/Alert'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const fetchInformes = async (anio_servicio, id_publicador) => await window.api.invoke('get-informes', [anio_servicio, id_publicador, ''])
@@ -25,8 +26,10 @@ const S21 = () => {
     const [year, setYear] = useState(initialYear)
     const [nombreInput, setNombreInput] = useState('')
     const [showOptions, setShowOptions] = useState(false)
+	const [showAlert, setShowAlert] = useState(false)
 
     useEffect(() => {
+        window.api.receive('save-S-21-reply', () => setShowAlert(true))
         cargarPublicadores()
     }, [])
 
@@ -41,8 +44,12 @@ const S21 = () => {
     }
     // Cargar informes desde la base de datos
     const cargarInformes = async () => {
-        const { success, data } = await fetchInformes(year, pubId)
-        setInformes(success ? data : [])
+        if (year && pubId) {
+            const { success, data } = await fetchInformes(year, pubId)
+            setInformes(success ? data : [])
+        }
+        else
+            setInformes([])
     }
 
     return (
@@ -54,6 +61,12 @@ const S21 = () => {
                 </h1>
             </div>
 
+            <Alert
+                type="success"
+                message="Archivo(s) creado(s) con éxito!"
+                show={showAlert}
+                onCancel={() => setShowAlert(false)}
+            />
             {/* Datos personales */}
             <div className="grid grid-cols-4 gap-4 mb-2">
                 <div className="col-span-4 flex flex-row gap-4 items-center relative">
@@ -137,13 +150,25 @@ const S21 = () => {
             <div className="flex justify-end mt-2">
                 <span className="font-semibold">Total de horas: {informes.reduce((acc, r) => acc + r.horas, 0)}</span>
             </div>
+            <div className="flex justify-end mt-2">
+                {year && pubId != 0 && (
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
+                        onClick={() => window.api.send('save-S-21', [year, pubId])}
+                    >Exportar a PDF</button>
+                )}
+                {year && (
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
+                        onClick={() => window.api.send('save-S-21', [year, null])}
+                    >Exportar todos</button>
+                )}
+            </div>
         </div>
     )
 }
-
 function DatosPublicador({ pubId, publicadores }) {
     const pub = publicadores.find((item) => item.id === pubId)
-    console.log("DatosPublicador", pub, publicadores, pubId)
     if (pub)
         return (
             <>
@@ -176,7 +201,6 @@ function DatosPublicador({ pubId, publicadores }) {
 }
 function PrivilegiosPublicador({ pubId, publicadores }) {
     const pub = publicadores.find((item) => item.id === pubId)
-    console.log("PrivilegiosPublicador", pub, publicadores, pubId)
     if (pub)
         return (
             <div className="grid grid-cols-5 gap-2 mb-4">

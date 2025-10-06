@@ -1,9 +1,29 @@
-import { ipcMain } from 'electron'
+import { ipcMain, dialog, shell } from 'electron'
 import { initDb, allAsync } from './database/db.mjs'
-
+import { GenerarS21 } from './fillPDF.mjs'
 export default function initIPC() {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
+	ipcMain.on('save-S-21', async (event, [year, pubId]) => {
+		const mainWindow = null;
+		const result = await dialog.showOpenDialog(mainWindow, {
+			properties: ['openDirectory']
+		})
+		if (!result.canceled) {
+			const { success, filePaths } = await GenerarS21(year, pubId, result.filePaths[0]);
+			if (success) {
+				/*if (pubId) {
+					await shell.openPath(filePaths[0]);
+					event.returnValue = 'success'
+				}
+				else*/
+					event.sender.send('save-S-21-reply', 'ok')
+			}
+			event.returnValue = 'failed'
+			return;
+		}
+		event.returnValue = 'canceled'
+	})
 	ipcMain.handle('get-asistencias', async (event) => {
 		try {
 			const db = await initDb()
