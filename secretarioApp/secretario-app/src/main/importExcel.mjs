@@ -1,36 +1,56 @@
 import { initDb, allAsync, runAsync } from './database/db.mjs'
 import xlsx from 'xlsx'
 
-export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') => {
-	const db = await initDb()
+const insertPrivilegios = async (db) => {
+	const initialized = !!db;
+	if (!initialized) db = await initDb()
 
-	// Insertar privilegios y tipos de publicador
-	for (let privilegio of [{ descripcion: 'Anciano' }, { descripcion: 'Siervo ministerial' }]) {
+	// Insertar privilegios
+	for (let privilegio of ['Anciano', 'Siervo ministerial']) {
 		await runAsync(db, `INSERT OR IGNORE INTO Privilegio (descripcion) VALUES (?)`, [
-			privilegio.descripcion
+			privilegio
 		])
 	}
-	const Privilegio = await allAsync(db, `SELECT * FROM Privilegio`)
-	console.log('Importado Privilegios')
+	if (!initialized) await db.close()
+	return { success: true, message: 'Importado Privilegios' }
+}
+
+const insertTipoPublicador = async (db) => {
+	const initialized = !!db;
+	if (!initialized) db = await initDb()
 
 	// Insertar tipos de publicador
-	for (let tipo_Publicador of [
-		{ descripcion: 'Publicador' },
-		{ descripcion: 'Precursor regular' },
-		{ descripcion: 'Precursor auxiliar' }
-	]) {
+	for (let tipo_Publicador of ['Publicador', 'Precursor regular', 'Precursor auxiliar']) {
 		await runAsync(db, `INSERT OR IGNORE INTO Tipo_Publicador (descripcion) VALUES (?)`, [
-			tipo_Publicador.descripcion
+			tipo_Publicador
 		])
 	}
-	const Tipo_Publicador = await allAsync(db, `SELECT * FROM Tipo_Publicador`)
-	// Mostrar los tipos de publicador importados
-	console.log('Importado Tipos de Publicador')
+	if (!initialized) await db.close()
+	return { success: true, message: 'Importado Tipos de Publicador' }
+}
 
-	const workbook = xlsx.readFile(filePath, { cellDates: true })
+const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, filePath }) => {
+	if (!workbook && !filePath) return { success: false }
+	if (!workbook) workbook = xlsx.readFile(filePath, { cellDates: true })
+
+	const sheet = workbook.Sheets['Publicadores']
+	if (!sheet) return { success: false }
+
+	const initialized = !!db;
+	if (!initialized) db = await initDb()
+
+	if (!Privilegio) {
+		await insertPrivilegios(db)
+		Privilegio = await allAsync(db, `select * from Privilegio`)
+	}
+
+	if (!Tipo_Publicador) {
+		await insertTipoPublicador(db)
+		Tipo_Publicador = await allAsync(db, `select * from Tipo_Publicador`)
+	}
 
 	// Importar publicadores
-	const jsonPublicadores = xlsx.utils.sheet_to_json(workbook.Sheets['Publicadores'])
+	const jsonPublicadores = xlsx.utils.sheet_to_json(sheet)
 	for (let p of jsonPublicadores) {
 		let nombre =
 			p.Nombre && p.Nombre.indexOf(',') !== -1
@@ -77,13 +97,32 @@ export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') 
 			params
 		)
 	}
+	if (!initialized) await db.close()
+	return { success: true, message: 'Importado Publicadores' }
+}
 
-	console.log('Importado Publicadores')
-	const Publicadores = await allAsync(db, `SELECT * FROM Publicadores`)
+const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath }) => {
+	if (!workbook && !filePath) return { success: false }
+	if (!workbook) workbook = xlsx.readFile(filePath, { cellDates: true })
+
+	const sheet = workbook.Sheets['Informes']
+	if (!sheet) return { success: false }
+
+	const initialized = !!db;
+	if (!initialized) db = await initDb()
+
+	if (!Tipo_Publicador) {
+		await insertTipoPublicador(db)
+		Tipo_Publicador = await allAsync(db, `select * from Tipo_Publicador`)
+	}
+
+	if (!Publicadores) {
+		await insertPublicadores({ db, Privilegio, Tipo_Publicador, workbook })
+		Publicadores = await allAsync(db, `select * from Publicadores`)
+	}
 
 	// Importar informes
-	const jsonInf = xlsx.utils.sheet_to_json(workbook.Sheets['Informes'])
-
+	const jsonInf = xlsx.utils.sheet_to_json(sheet)
 	for (let p of jsonInf) {
 		let publicador = Publicadores.find(
 			(pub) => (pub.apellidos ? pub.apellidos + ', ' : '') + pub.nombre == p.Nombre
@@ -116,21 +155,50 @@ export const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') 
 			params
 		)
 	}
-	console.log('Importado Informes')
-	const jsonAsis = xlsx.utils.sheet_to_json(workbook.Sheets['Asistencias'])
+	if (!initialized) await db.close()
+	return { success: true, message: 'Importado Informes' }
+}
+const insertAsistencias = async ({ workbook, db, filePath }) => {
+	if (!workbook && !filePath) return { success: false }
+	if (!workbook) workbook = xlsx.readFile(filePath, { cellDates: true })
 
+	const sheet = workbook.Sheets['Asistencias']
+	if (!sheet) return { success: false }
+
+	const initialized = !!db;
+	if (!initialized) db = await initDb()
+
+	const jsonAsis = xlsx.utils.sheet_to_json(sheet)
 	for (let p of jsonAsis) {
 		if (p.Fecha === 'Total' || !p.Fecha) continue // Ignorar filas de totales o sin fecha
-		let params = [p.Fecha?.toISOString().substring(0, 10), p.Asistentes, p.Notas]
 		await runAsync(
 			db,
 			`INSERT OR IGNORE INTO Asistencias(fecha, asistentes, notas) VALUES (?,?,?)`,
-			params
+			[p.Fecha?.toISOString().substring(0, 10), p.Asistentes, p.Notas]
 		)
 	}
-	console.log('Importado Asistencias')
+	if (!initialized) await db.close()
+	return { success: true, message: 'Importado Asistencias' }
+}
+
+const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') => {
+	const db = await initDb()
+	await insertPrivilegios(db)
+	const Privilegio = await allAsync(db, `select * from Privilegio`)
+
+	await insertTipoPublicador(db)
+	const Tipo_Publicador = await allAsync(db, `select * from Tipo_Publicador`)
+
+	const workbook = xlsx.readFile(filePath, { cellDates: true })
+
+	await insertPublicadores({ workbook, db, Privilegio, Tipo_Publicador })
+	const Publicadores = await allAsync(db, `select * from Publicadores`)
+
+	await insertInformes({ workbook, db, Privilegio, Tipo_Publicador, Publicadores })
+	await insertAsistencias({ workbook, db })
 
 	await db.close()
 	return { success: true }
 }
 //importExcel('C:\\Users\\DanielMedina\\OneDrive\\Congregación Jardines de Andalucía\\Secretario\\Jardines de Andalucía.xlsx').catch((err) => console.error(err));
+export default { insertAsistencias, insertInformes, insertPublicadores, importExcel }
