@@ -29,7 +29,7 @@ const insertTipoPublicador = async (db) => {
 	return { success: true, message: 'Importado Tipos de Publicador' }
 }
 
-const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, filePath }) => {
+const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, filePath, showMessage }) => {
 	if (!workbook && !filePath) return { success: false }
 	if (!workbook) workbook = xlsx.readFile(filePath, { cellDates: true })
 
@@ -48,7 +48,7 @@ const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, f
 		await insertTipoPublicador(db)
 		Tipo_Publicador = await allAsync(db, `select * from Tipo_Publicador`)
 	}
-
+	let count = 0;
 	// Importar publicadores
 	const jsonPublicadores = xlsx.utils.sheet_to_json(sheet)
 	for (let p of jsonPublicadores) {
@@ -96,12 +96,15 @@ const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, f
         where not exists (select 1 from Publicadores where nombre = ? and apellidos = ?)`,
 			params
 		)
+		count++;
+		if (showMessage)
+			showMessage({ progress: Math.round(100 * count / jsonPublicadores.length), message: `Publicador importado: ${nombre} ${apellidos}...` });
 	}
 	if (!initialized) await db.close()
 	return { success: true, message: 'Importado Publicadores' }
 }
 
-const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath }) => {
+const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath, showMessage }) => {
 	if (!workbook && !filePath) return { success: false }
 	if (!workbook) workbook = xlsx.readFile(filePath, { cellDates: true })
 
@@ -120,7 +123,7 @@ const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publi
 		await insertPublicadores({ db, Privilegio, Tipo_Publicador, workbook })
 		Publicadores = await allAsync(db, `select * from Publicadores`)
 	}
-
+	let count = 0;
 	// Importar informes
 	const jsonInf = xlsx.utils.sheet_to_json(sheet)
 	for (let p of jsonInf) {
@@ -154,11 +157,14 @@ const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publi
       where not exists (select 1 from Informes where id_publicador = ? and mes = ?)`,
 			params
 		)
+		count++;
+		if (showMessage)
+			showMessage({ progress: Math.round(100 * count / jsonInf.length), message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...` });
 	}
 	if (!initialized) await db.close()
 	return { success: true, message: 'Importado Informes' }
 }
-const insertAsistencias = async ({ workbook, db, filePath }) => {
+const insertAsistencias = async ({ workbook, db, filePath, showMessage }) => {
 	if (!workbook && !filePath) return { success: false }
 	if (!workbook) workbook = xlsx.readFile(filePath, { cellDates: true })
 
@@ -167,7 +173,7 @@ const insertAsistencias = async ({ workbook, db, filePath }) => {
 
 	const initialized = !!db;
 	if (!initialized) db = await initDb()
-
+let count=0;
 	const jsonAsis = xlsx.utils.sheet_to_json(sheet)
 	for (let p of jsonAsis) {
 		if (p.Fecha === 'Total' || !p.Fecha) continue // Ignorar filas de totales o sin fecha
@@ -176,12 +182,15 @@ const insertAsistencias = async ({ workbook, db, filePath }) => {
 			`INSERT OR IGNORE INTO Asistencias(fecha, asistentes, notas) VALUES (?,?,?)`,
 			[p.Fecha?.toISOString().substring(0, 10), p.Asistentes, p.Notas]
 		)
+		count++;
+		if (showMessage)
+			showMessage({ progress: Math.round(100 * count / jsonAsis.length), message: `Asistencia importada: ${p.Fecha?.toISOString().substring(0, 10)}...` });
 	}
 	if (!initialized) await db.close()
 	return { success: true, message: 'Importado Asistencias' }
 }
 
-const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') => {
+const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx', showMessage = null) => {
 	const db = await initDb()
 	await insertPrivilegios(db)
 	const Privilegio = await allAsync(db, `select * from Privilegio`)
@@ -191,11 +200,11 @@ const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx') => {
 
 	const workbook = xlsx.readFile(filePath, { cellDates: true })
 
-	await insertPublicadores({ workbook, db, Privilegio, Tipo_Publicador })
+	await insertPublicadores({ workbook, db, Privilegio, Tipo_Publicador, showMessage })
 	const Publicadores = await allAsync(db, `select * from Publicadores`)
 
-	await insertInformes({ workbook, db, Privilegio, Tipo_Publicador, Publicadores })
-	await insertAsistencias({ workbook, db })
+	await insertInformes({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, showMessage })
+	await insertAsistencias({ workbook, db, showMessage })
 
 	await db.close()
 	return { success: true }

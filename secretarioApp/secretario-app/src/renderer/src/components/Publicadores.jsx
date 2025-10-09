@@ -78,7 +78,7 @@ export default function Publicadores() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
-			{loading && <Loading />}
+			<Loading loading={loading} />
 			<ButtonBar
 				title="Publicadores"
 				editandoId={editandoId}

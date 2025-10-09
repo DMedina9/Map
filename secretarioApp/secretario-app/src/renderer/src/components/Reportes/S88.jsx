@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { DataFieldSelect } from './../utils/DataFields'
 import PropTypes from 'prop-types'
+import Alert from '../utils/Alert'
 
 const fetchS88 = async (year, type) => await window.api.invoke('get-S88', [year, type])
 
@@ -24,13 +25,32 @@ export default function S88() {
 	const initialYear = (new Date().getMonth() > 8 ? 1 : 0) + new Date().getFullYear()
 	const [year, setYear] = useState(initialYear)
 	const [congregation, setCongregation] = useState('Jardines de Andalucía')
+	const [showAlert, setShowAlert] = useState(false)
+	const [alertType, setAlertType] = useState('success')
+	const [message, setMessage] = useState('')
 
+	useEffect(() => {
+		window.api.receive('save-S-88-reply', ({ type, message }) => {
+			setAlertType(type || 'success')
+			setMessage(message)
+			setShowAlert(true)
+		})
+	}, [])
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 mb-4 border-b">
 				<h1 className="text-2xl font-bold mb-4 text-gray-800 col-span-3">
 					Registro de Asistencia a las Reuniones de Congregación (S-88)
 				</h1>
+				<Alert
+					type={alertType}
+					message={message}
+					show={showAlert}
+					onCancel={() => {
+						setMessage('')
+						setShowAlert(false)
+					}}
+				/>
 				<DataFieldSelect
 					desc="Año de servicio"
 					name="year"
@@ -66,6 +86,14 @@ export default function S88() {
 			<div className="flex justify-between gap-4 m-4">
 				<ReportTable year={year - 1} type="FS" />
 				<ReportTable year={year} type="FS" />
+			</div>
+			<div className="flex justify-end mt-2">
+				<button
+					className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
+					onClick={() => window.api.send('save-S-88', year)}
+				>
+					Exportar a PDF
+				</button>
 			</div>
 			<div className="mt-6 text-sm text-gray-500">
 				<p>Este registro es para uso interno de la congregación.</p>
@@ -150,7 +178,9 @@ function ReportTable({ year, type }) {
 							<td className="border px-2 py-1 text-center">
 								{item.num_reuniones || ''}
 							</td>
-							<td className="border px-2 py-1 text-center">{item.asistencia || ''}</td>
+							<td className="border px-2 py-1 text-center">
+								{item.asistencia || ''}
+							</td>
 							<td className="border px-2 py-1 text-right">
 								{(item.asistencia &&
 									item.num_reuniones &&

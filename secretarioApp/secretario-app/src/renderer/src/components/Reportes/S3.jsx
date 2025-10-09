@@ -45,12 +45,10 @@ export default function S3() {
 						)}
 					</DataFieldSelect>
 				</div>
-				
-					<h2 className="text-xl font-bold mb-4 text-gray-800">Reunión de entre semana</h2>
-					<ReportTable year={year} type="ES" />
-					<h2 className="text-xl font-bold mb-4 text-gray-800">Reunión del fin de semana</h2>
-					<ReportTable year={year} type="FS" />
-				
+				<h2 className="text-xl font-bold mb-4 text-gray-800">Reunión de entre semana</h2>
+				<ReportTable year={year} type="ES" />
+				<h2 className="text-xl font-bold mb-4 text-gray-800">Reunión del fin de semana</h2>
+				<ReportTable year={year} type="FS" />
 			</div>
 		</div>
 	)

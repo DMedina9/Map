@@ -77,7 +77,7 @@ export default function Asistencias() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
-			{loading && <Loading />} {/* Muestra Loading mientras loading es true */}
+			<Loading loading={loading} />
 			<ButtonBar
 				title="Asistencias"
 				editandoId={editandoId}

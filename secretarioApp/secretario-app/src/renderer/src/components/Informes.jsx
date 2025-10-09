@@ -3,9 +3,10 @@ import ButtonBar from './utils/ButtonBar'
 import { DataField, DataFieldSelect } from './utils/DataFields'
 import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
+import ProgressBar from './utils/ProgressBar'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
-const fetchInformes = async () => await window.api.invoke('get-informes', ["", "", ""])
+const fetchInformes = async () => await window.api.invoke('get-informes', ['', '', ''])
 const addInforme = async (informe) => await window.api.invoke('add-informe', informe)
 const updateInforme = async (id, informe) =>
 	await window.api.invoke('update-informe', { id, ...informe })
@@ -28,19 +29,29 @@ export default function Informes() {
 	const [editandoId, setEditandoId] = useState(null)
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
-    const [loading, setLoading] = useState(true) // Estado para loading
+	const [loading, setLoading] = useState(true) // Estado para loading
+	const [message, setMessage] = useState('')
+	const [progress, setProgress] = useState(0)
 
 	// Carga los datos al montar el componente
 	useEffect(() => {
 		const cargarTodo = async () => {
-            setLoading(true)
-            await cargarInformes()
-            await cargarPublicadores()
-            setLoading(false)
-        }
-        cargarTodo()
+			setLoading(true)
+			await cargarInformes()
+			await cargarPublicadores()
+			setLoading(false)
+		}
+		cargarTodo()
+		window.api.receive('upload-informes-message', ({ progress, message }) => {
+			setProgress(progress)
+			setMessage(message)
+		})
+		window.api.receive('upload-informes-reply', ({ /*type,*/ message }) => {
+			//setAlertType(type || 'success')
+			setMessage(message)
+			setShowAlert(true)
+		})
 	}, [])
-
 	// Maneja los cambios en el formulario
 	const handleChange = (e) => {
 		setForm({ ...form, [e.target.name]: e.target.value })
@@ -92,7 +103,7 @@ export default function Informes() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
-			{loading && <Loading />} {/* Muestra Loading mientras loading es true */}
+			<Loading loading={loading} />
 			<ButtonBar
 				title="Informes"
 				editandoId={editandoId}
@@ -173,6 +184,15 @@ export default function Informes() {
 							</tbody>
 						</table>
 					</div>
+					<div className="flex justify-end mt-2">
+						<button
+							className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
+							onClick={() => window.api.send('upload-informes')}
+						>
+							Importar Excel
+						</button>
+					</div>
+					<ProgressBar show={!showAlert} message={message} progress={progress} />
 				</div>
 			) : (
 				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">

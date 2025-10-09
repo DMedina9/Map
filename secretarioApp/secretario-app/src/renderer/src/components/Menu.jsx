@@ -60,7 +60,7 @@ const Menu = () => (
 						<li className="relative group">
 							<button className="text-white hover:text-gray-400">Reportes</button>
 							{/* Submenú */}
-							<ul className="absolute left-0 mt-2 bg-gray-800 text-white shadow-lg rounded hidden group-hover:block w-100">
+							<ul className="absolute left-0 pt-2 bg-gray-800 text-white shadow-lg rounded hidden group-hover:block w-20">
 								<li>
 									<Link to="/reportes/S1" className="block px-4 py-2 hover:bg-gray-200 hover:text-black">
 										S-1

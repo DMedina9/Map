@@ -1,6 +1,8 @@
 import { ipcMain, dialog, shell } from 'electron'
 import { initDb, allAsync } from './database/db.mjs'
-import { GenerarS21 } from './fillPDF.mjs'
+import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
+import getS88 from './getS88.mjs';
+
 export default function initIPC() {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
@@ -10,20 +12,51 @@ export default function initIPC() {
 			properties: ['openDirectory']
 		})
 		if (!result.canceled) {
-			const { success, filePaths } = await GenerarS21(year, pubId, result.filePaths[0]);
-			if (success) {
-				/*if (pubId) {
-					await shell.openPath(filePaths[0]);
-					event.returnValue = 'success'
-				}
-				else*/
-					event.sender.send('save-S-21-reply', 'ok')
+			let r = await GenerarS21(year, pubId, result.filePaths[0], message => event.sender.send('save-S-21-message', message));
+			if (!r.success) {
+				event.returnValue = 'failed'
+				return;
 			}
-			event.returnValue = 'failed'
-			return;
+			if (!pubId)
+				r = await GenerarS21Totales(year, pubId, result.filePaths[0], message => event.sender.send('save-S-21-message', message));
+
+			/*if (pubId) {
+				await shell.openPath(filePaths[0]);
+				event.returnValue = 'success'
+			}
+			else*/
+			if (r.success)
+				event.sender.send('save-S-21-reply', { type: "success", message: r.filePaths.length > 1 ? "Archivos generados con éxito!" : "Archivo generado con éxito!" })
+			else {
+				event.returnValue = 'failed'
+				return;
+			}
 		}
 		event.returnValue = 'canceled'
 	})
+	ipcMain.on('save-S-88', async (event, year) => {
+		const mainWindow = null;
+		const result = await dialog.showOpenDialog(mainWindow, {
+			properties: ['openDirectory']
+		})
+		if (!result.canceled) {
+			let r = await GenerarS88(year, result.filePaths[0], message => event.sender.send('save-S-88-message', message));
+
+			/*if (pubId) {
+				await shell.openPath(filePaths[0]);
+				event.returnValue = 'success'
+			}
+			else*/
+			if (r.success)
+				event.sender.send('save-S-88-reply', { type: "success", message: "Archivo generado con éxito!" })
+			else {
+				event.returnValue = 'failed'
+				return;
+			}
+		}
+		event.returnValue = 'canceled'
+	})
+
 	ipcMain.handle('get-asistencias', async (event) => {
 		try {
 			const db = await initDb()
@@ -396,41 +429,7 @@ export default function initIPC() {
 			return { success: false, error: error.message }
 		}
 	})
-	ipcMain.handle('get-S88', async (event, [anio, type]) => {
-		// Validar año
-		if (!anio || isNaN(anio) || anio < 2020) {
-			return { success: false, error: 'Año inválido' }
-		}
-		try {
-			const db = await initDb()
-			const rows = await allAsync(
-				db,
-				`select
-					(month + 3) % 12 + 1 as id,
-					month, num_reuniones, asistencia
-				from (
-					SELECT
-						CASE WHEN CAST(STRFTIME('%w', fecha) AS INTEGER) IN (0,6) THEN 'FS' ELSE 'ES' END as type,
-						CAST(strftime('%m', fecha) AS INTEGER) AS month,
-						CAST(strftime('%Y', fecha) AS INTEGER) AS year,
-						COUNT(1) AS num_reuniones,
-						SUM(asistentes) AS asistencia
-					FROM Asistencias
-					where asistentes is not null
-					GROUP BY strftime('%Y-%m', fecha), CASE WHEN CAST(STRFTIME('%w', fecha) AS INTEGER) IN (0,6) THEN 'FS' ELSE 'ES' END
-				) a
-				WHERE case when month > 8 then 1 else 0 end + year = ?
-				and type = ?;
-`,
-				[anio, type]
-			)
-			await db.close()
-			return { success: true, data: rows }
-		} catch (error) {
-			console.error('Database query error:', error)
-			return { success: false, error: error.message }
-		}
-	})
+	ipcMain.handle('get-S88', getS88)
 	ipcMain.handle('get-S1', async (event, month) => {
 		// Validar mes
 		if (!month || !/^\d{4}-\d{2}-\d{2}$/.test(month)) {

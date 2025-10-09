@@ -1,4 +1,5 @@
 import { initDb, allAsync } from './database/db.mjs';
+import getS88 from './getS88.mjs';
 import * as fs from 'node:fs';
 import { PDFDocument } from 'pdf-lib';
 
@@ -95,13 +96,18 @@ const dataFields = {
 
 // Ruta del archivo PDF
 const rutaPDF = __dirname + '\\..\\..\\resources\\PDF\\S-21_S.pdf';
-//console.log(rutaPDF);
 
-async function GenerarS21Totales(anio, id_tipo_publicador = null) {
+async function GenerarS21Totales(anio, id_tipo_publicador = null, fileDir = null, showMessage = null) {
+	if (!fileDir)
+		fileDir = "./Tarjetas actuales";
+	fileDir += "/";
+
+	const filePaths = [];
 	// Conectar a la base de datos
 	const db = await initDb();
 	const filtro = id_tipo_publicador ? ` where id = ${id_tipo_publicador}` : '';
 	const Tipo_Publicador = await allAsync(db, `SELECT * FROM Tipo_Publicador${filtro}`);
+	let count = 0;
 	for (let tipo_publicador of Tipo_Publicador) {
 		const pdfDoc = await PDFDocument.load(fs.readFileSync(rutaPDF));
 		const form = pdfDoc.getForm()
@@ -147,22 +153,26 @@ async function GenerarS21Totales(anio, id_tipo_publicador = null) {
 		await pdfDoc.save({ useObjectStreams: false });
 		const pdfBytes = await pdfDoc.save({ useObjectStreams: true });
 		//const pdfBytes = await pdfDoc.save();
-		let dir = "./Tarjetas actuales/01 Tarjetas de totales mensuales";
+		let dir = fileDir + "01 Tarjetas de totales mensuales";
 
 		if (!fs.existsSync(dir))
 			fs.mkdirSync(dir, { recursive: true });
 
-		fs.writeFileSync(`${dir}/S-21-S - ${anio} - ${tipo_publicador.descripcion}.pdf`, pdfBytes)
-		console.log(`S-21 (${anio}) generado para ${tipo_publicador.descripcion}`);
-		//await shell.openPath(`${dir}/S-21-S - ${publicador.apellidos}, ${publicador.nombre}.pdf`);
+		const filePath = `${dir}/S-21-S - ${anio} - ${tipo_publicador.descripcion}.pdf`;
+		fs.writeFileSync(filePath, pdfBytes);
+		count++;
+		if (showMessage)
+			showMessage({ progress: Math.round(100 * count / Tipo_Publicador.length), message: `S-21 (${anio}) generado para ${tipo_publicador.descripcion}...` });
+		filePaths.push(filePath);
 	}
+	return { success: true, filePaths };
 }
 // Generar y exportar el PDF rellenado
-async function GenerarS21(anio, id_publicador = null, fileDir = null) {
+async function GenerarS21(anio, id_publicador = null, fileDir = null, showMessage = null) {
 	if (!fileDir)
 		fileDir = "./Tarjetas actuales";
 	fileDir += "/";
-
+	let count = 0;
 	const filePaths = [];
 	//GenerarS21Totales(anio).catch((err) => console.error(err));
 	// Conectar a la base de datos
@@ -267,10 +277,97 @@ async function GenerarS21(anio, id_publicador = null, fileDir = null) {
 		}
 		const filePath = `${dir}/S-21-S - ${anio} - ${publicador.apellidos}, ${publicador.nombre}.pdf`;
 		fs.writeFileSync(filePath, pdfBytes);
+		count++;
+		if (showMessage)
+			showMessage({ progress: Math.round(100 * count / Publicadores.length), message: `S-21 (${anio}) generado para ${publicador.nombre} ${publicador.apellidos}...` });
 		filePaths.push(filePath);
 	}
 	return { success: true, filePaths };
 }
+const calcularPromedio = (item) =>
+	item.num_reuniones ? item.asistencia / item.num_reuniones : 0
+
+// Función para calcular el promedio de los promedios
+const promedioDePromedios = (matriz) => {
+	if (!Array.isArray(matriz) || matriz.length === 0) {
+		return 0 // O manejar el caso según sea necesario
+	}
+
+	// Calcular el promedio de cada subarreglo
+	const promedios = matriz.map((item) => {
+		return calcularPromedio(item)
+	})
+
+	// Calcular el promedio de los promedios
+	return promedios.reduce((a, b) => a + b, 0) / promedios.length
+}
+
+// Generar y exportar el PDF rellenado
+async function GenerarS88(anio, fileDir = null, showMessage = null) {
+	const rutaPDF = __dirname + '\\..\\..\\resources\\PDF\\S-88_S.pdf';
+	if (!fileDir)
+		fileDir = "./Tarjetas actuales";
+	fileDir += "/";
+	const pdfDoc = await PDFDocument.load(fs.readFileSync(rutaPDF));
+	//pdfDoc.registerFontkit(fontkit);
+	const form = pdfDoc.getForm()
+	for (let i = 1; i < 5; i++) {
+		let year;
+		let type;
+		switch (i) {
+			case 1:
+				year = anio - 1;
+				type = "ES";
+				break;
+			case 2:
+				year = anio;
+				type = "ES";
+				break;
+			case 3:
+				year = anio - 1;
+				type = "FS"
+				break;
+			case 4:
+				year = anio;
+				type = "FS"
+				break;
+		}
+		const { success, data } = await getS88(null, [year, type]);
+		const rows = data;
+		console.log(year, type, rows)
+		if (!success || rows.length === 0) {
+			console.log("No se encontraron registros");
+			return;
+		}
+
+		for (let row of rows) {
+			// Rellenar campos del formulario
+			form.getTextField(`Service Year_${i}`).setText(year.toString());
+			if (row.num_reuniones) form.getTextField(`${i}-Meeting_${row.id}`).setText(row.num_reuniones.toString());
+			if (row.asistencia) form.getTextField(`${i}-Attendance_${row.id}`).setText(row.asistencia.toString());
+
+			if (row.num_reuniones && row.asistencia) form.getTextField(`${i}-Average_${row.id}`).setText((row.asistencia / row.num_reuniones).toFixed(2));
+		}
+		const average = promedioDePromedios(rows)
+		if (average)
+			form.getTextField(`${i}-Average_Total`).setText(average.toFixed(2));
+	}
+	// Guardar el PDF modificado
+	await pdfDoc.save({ useObjectStreams: false });
+	const pdfBytes = await pdfDoc.save({ useObjectStreams: true });
+
+	let dir = fileDir;
+
+	if (!fs.existsSync(dir)) {
+		fs.mkdirSync(dir, { recursive: true });
+	}
+	const filePath = `${dir}/S-88-S - ${anio - 1} - ${anio}.pdf`;
+	fs.writeFileSync(filePath, pdfBytes);
+	//if (showMessage)
+	//	showMessage({ progress: Math.round(100 * count / Publicadores.length), message: `S-21 (${anio}) generado para ${publicador.nombre} ${publicador.apellidos}...` });
+	return { success: true, filePath };
+}
+
 function getDateFormat(date) {
 	date = date.substring(0, 10);
 	const dateParts = date.split('-');
@@ -279,6 +376,6 @@ function getDateFormat(date) {
 	const day = dateParts[2];
 	return `${day}/${month}/${year}`;
 }
-export { GenerarS21, GenerarS21Totales, allAsync };
+export { GenerarS21, GenerarS21Totales, GenerarS88 };
 //GenerarS21(2024).catch((err) => console.error(err));
 //GenerarS21(2025).catch((err) => console.error(err));
