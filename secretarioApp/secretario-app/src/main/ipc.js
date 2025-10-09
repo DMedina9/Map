@@ -1,11 +1,58 @@
 import { ipcMain, dialog, shell } from 'electron'
 import { initDb, allAsync } from './database/db.mjs'
 import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
+import { insertAsistencias, insertInformes, insertPublicadores } from './importExcel.mjs'
+
 import getS88 from './getS88.mjs';
 
 export default function initIPC() {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
+	ipcMain.on('upload-informes', async (event) => {
+		const mainWindow = null;
+		const result = await dialog.showOpenDialog(mainWindow, {
+			filters: [
+				{ name: 'Microsoft Excel', extensions: ['xlsx'] }
+			],
+			properties: ['openFile']
+		})
+		if (!result.canceled) {
+			const { success, message } = await insertInformes({ filePath: result.filePaths[0], showMessage: message => event.sender.send('upload-informes-message', message) });
+			event.sender.send('upload-informes-reply', { type: success ? "success" : "error", message })
+		}
+		event.returnValue = 'canceled'
+	})
+	ipcMain.on('upload-asistencias', async (event) => {
+		const mainWindow = null;
+		const result = await dialog.showOpenDialog(mainWindow, {
+			filters: [
+				{ name: 'Microsoft Excel', extensions: ['xlsx'] }
+			],
+			properties: ['openFile']
+		})
+		if (!result.canceled) {
+			const { success, message } = await insertAsistencias({ filePath: result.filePaths[0], showMessage: message => event.sender.send('upload-asistencias-message', message) });
+			event.sender.send('upload-asistencias-reply', { type: success ? "success" : "error", message })
+			return;
+		}
+		event.returnValue = 'canceled'
+	})
+	ipcMain.on('upload-publicadores', async (event) => {
+		const mainWindow = null;
+		const result = await dialog.showOpenDialog(mainWindow, {
+			filters: [
+				{ name: 'Microsoft Excel', extensions: ['xlsx'] }
+			],
+			properties: ['openFile']
+		})
+		if (!result.canceled) {
+			const { success, message } = await insertPublicadores({ filePath: result.filePaths[0], showMessage: message => event.sender.send('upload-publicadores-message', message) });
+			event.sender.send('upload-publicadores-reply', { type: success ? "success" : "error", message })
+			return;
+		}
+		event.returnValue = 'canceled'
+	})
+
 	ipcMain.on('save-S-21', async (event, [year, pubId]) => {
 		const mainWindow = null;
 		const result = await dialog.showOpenDialog(mainWindow, {
@@ -57,6 +104,22 @@ export default function initIPC() {
 		event.returnValue = 'canceled'
 	})
 
+	ipcMain.handle('get-mes-informe', async (event) => {
+		try {
+			const db = await initDb()
+			const rows = await allAsync(
+				db,
+				`select max(mes) as mes from Informes`
+			)
+			await db.close()
+			const aMonth = rows[0].mes.split('-')
+			const month = new Date(aMonth[0], aMonth[1] * 1 - 1, 1)
+			return month
+		} catch (error) {
+			console.error('Database query error:', error)
+			return null
+		}
+	})
 	ipcMain.handle('get-asistencias', async (event) => {
 		try {
 			const db = await initDb()
@@ -435,7 +498,6 @@ export default function initIPC() {
 		if (!month || !/^\d{4}-\d{2}-\d{2}$/.test(month)) {
 			return { success: false, error: 'Mes inválido' }
 		}
-		console.log(month)
 		try {
 			const db = await initDb()
 

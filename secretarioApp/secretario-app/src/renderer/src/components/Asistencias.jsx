@@ -3,6 +3,7 @@ import ButtonBar from './utils/ButtonBar'
 import { DataField } from './utils/DataFields'
 import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
+import ProgressBar from './utils/ProgressBar'
 
 const fetchAsistencias = async () => await window.api.invoke('get-asistencias')
 const addAsistencia = async (asistencia) => await window.api.invoke('add-asistencia', asistencia)
@@ -23,10 +24,22 @@ export default function Asistencias() {
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
 	const [loading, setLoading] = useState(true) // Estado para loading
+	const [alertType, setAlertType] = useState('confirm')
+	const [message, setMessage] = useState('')
+	const [progress, setProgress] = useState(0)
 
 	// Carga los datos al montar el componente
 	useEffect(() => {
 		cargarAsistencias()
+		window.api.receive('upload-asistencias-message', ({ progress, message }) => {
+			setProgress(progress)
+			setMessage(message)
+		})
+		window.api.receive('upload-asistencias-reply', ({ type, message }) => {
+			setAlertType(type || 'success')
+			setMessage(message)
+			setShowAlert(true)
+		})
 	}, [])
 
 	// Maneja los cambios en el formulario
@@ -84,19 +97,31 @@ export default function Asistencias() {
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
-				onDelete={() => setShowAlert(true)}
+				onDelete={() => {
+					setAlertType("confirm")
+					setMessage("¿Estás seguro de que deseas eliminar esta asistencia?")
+					setShowAlert(true)
+				}}
+				onImport={() => window.api.send('upload-asistencias')}
 			/>
+			<ProgressBar show={!showAlert} message={message} progress={progress} />
 			<Alert
-				type="confirm"
-				message="¿Estás seguro de que deseas eliminar esta asistencia?"
+				type={alertType}
+				message={message}
 				show={showAlert}
 				onConfirm={async () => {
 					await deleteAsistencia(editandoId)
 					await cargarAsistencias()
 					cancelarEdicion()
+					setMessage("")
 					setShowAlert(false)
 				}}
-				onCancel={() => setShowAlert(false)}
+				onCancel={() => {
+					setMessage("")
+					setShowAlert(false)
+					if (alertType == "success")
+						cargarAsistencias()
+				}}
 			/>
 			{!editandoId ? (
 				<div>

@@ -3,6 +3,7 @@ import ButtonBar from './utils/ButtonBar'
 import { DataField, DataFieldSelect } from './utils/DataFields'
 import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
+import ProgressBar from './utils/ProgressBar'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const addPublicador = async (publicador) => await window.api.invoke('add-publicador', publicador)
@@ -25,11 +26,23 @@ export default function Publicadores() {
 	const [editandoId, setEditandoId] = useState(null)
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
-    const [loading, setLoading] = useState(true) // Estado para loading
+	const [loading, setLoading] = useState(true) // Estado para loading
+	const [alertType, setAlertType] = useState('confirm')
+	const [message, setMessage] = useState('')
+	const [progress, setProgress] = useState(0)
 
 	// Carga los datos al montar el componente
 	useEffect(() => {
 		cargarPublicadores()
+		window.api.receive('upload-publicadores-message', ({ progress, message }) => {
+			setProgress(progress)
+			setMessage(message)
+		})
+		window.api.receive('upload-publicadores-reply', ({ type, message }) => {
+			setAlertType(type || 'success')
+			setMessage(message)
+			setShowAlert(true)
+		})
 	}, [])
 
 	// Maneja los cambios en el formulario
@@ -57,7 +70,7 @@ export default function Publicadores() {
 		setLoading(true)
 		const { success, data } = await fetchPublicadores()
 		setDatos(success ? data : [])
-        setLoading(false)
+		setLoading(false)
 	}
 
 	const handleSubmit = async (e) => {
@@ -85,25 +98,31 @@ export default function Publicadores() {
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
-				onDelete={async () => {
-					if (window.confirm('¿Estás seguro de que deseas eliminar este publicador?')) {
-						await deletePublicador(editandoId)
-						await cargarPublicadores()
-						cancelarEdicion()
-					}
+				onDelete={() => {
+					setAlertType("confirm")
+					setMessage("¿Estás seguro de que deseas eliminar este publicador?")
+					setShowAlert(true)
 				}}
+				onImport={() => window.api.send('upload-publicadores')}
 			/>
+			<ProgressBar show={!showAlert} message={message} progress={progress} />
 			<Alert
-				type="confirm"
-				message="¿Estás seguro de que deseas eliminar este publicador?"
+				type={alertType}
+				message={message}
 				show={showAlert}
 				onConfirm={async () => {
 					await deletePublicador(editandoId)
 					await cargarPublicadores()
 					cancelarEdicion()
+					setMessage("")
 					setShowAlert(false)
 				}}
-				onCancel={() => setShowAlert(false)}
+				onCancel={() => {
+					setMessage("")
+					setShowAlert(false)
+					if (alertType == "success")
+						cargarPublicadores()
+				}}
 			/>
 			{!editandoId ? (
 				<div>

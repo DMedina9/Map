@@ -9,26 +9,25 @@ if (Date.prototype.addMonths == undefined) {
 	}
 }
 const MONTHS = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre'
+	'Enero',
+	'Febrero',
+	'Marzo',
+	'Abril',
+	'Mayo',
+	'Junio',
+	'Julio',
+	'Agosto',
+	'Septiembre',
+	'Octubre',
+	'Noviembre',
+	'Diciembre'
 ]
 
 export default function S1() {
-	const lastMonth = new Date().addMonths(-2)
 	const month =
-		lastMonth.getFullYear() +
+		window.mesInforme.getFullYear() +
 		'-' +
-		(lastMonth.getMonth() + 1).toString().padStart(2, '0') +
+		(window.mesInforme.getMonth() + 1).toString().padStart(2, '0') +
 		'-01'
 	const [datos, setDatos] = useState([])
 	useEffect(() => {
@@ -47,11 +46,13 @@ export default function S1() {
 				PREDICACIÓN Y ASISTENCIA A LAS REUNIONES <span className="hidden">(S-1)</span>
 			</div>
 			<div className="bg-gray-100 text-gray-600 text-2xl font-normal px-6 py-2">
-				{MONTHS[lastMonth.getMonth()]} de {lastMonth.getFullYear()}
+				{MONTHS[window.mesInforme.getMonth()]} de {window.mesInforme.getFullYear()}
 			</div>
 			<div className="px-6 py-2 italic text-gray-500">
 				Introduzca el informe y haga clic en{' '}
-				<span className="not-italic font-semibold">Enviar</span>.
+				<button className="not-italic font-semibold"
+					onClick={() => window.api.send("send-S1")}
+				>Enviar</button>.
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 				{datos.map((sec, i) => (

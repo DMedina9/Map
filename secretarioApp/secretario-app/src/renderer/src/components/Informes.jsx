@@ -30,6 +30,7 @@ export default function Informes() {
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
 	const [loading, setLoading] = useState(true) // Estado para loading
+	const [alertType, setAlertType] = useState('confirm')
 	const [message, setMessage] = useState('')
 	const [progress, setProgress] = useState(0)
 
@@ -37,7 +38,7 @@ export default function Informes() {
 	useEffect(() => {
 		const cargarTodo = async () => {
 			setLoading(true)
-			await cargarInformes()
+			await cargarInformes(false)
 			await cargarPublicadores()
 			setLoading(false)
 		}
@@ -46,8 +47,8 @@ export default function Informes() {
 			setProgress(progress)
 			setMessage(message)
 		})
-		window.api.receive('upload-informes-reply', ({ /*type,*/ message }) => {
-			//setAlertType(type || 'success')
+		window.api.receive('upload-informes-reply', ({ type, message }) => {
+			setAlertType(type || 'success')
 			setMessage(message)
 			setShowAlert(true)
 		})
@@ -75,9 +76,13 @@ export default function Informes() {
 		setForm({ ...item })
 	}
 	// Cargar informes desde la base de datos
-	const cargarInformes = async () => {
+	const cargarInformes = async (showLoading = true) => {
+		if (showLoading)
+			setLoading(true)
 		const { success, data } = await fetchInformes()
 		setDatos(success ? data : [])
+		if (showLoading)
+			setLoading(false)
 	}
 	// Cargar publicadores desde la base de datos
 	const cargarPublicadores = async () => {
@@ -110,19 +115,31 @@ export default function Informes() {
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
-				onDelete={() => setShowAlert(true)}
+				onDelete={() => {
+					setAlertType("confirm")
+					setMessage("¿Estás seguro de que deseas eliminar este informe?")
+					setShowAlert(true)
+				}}
+				onImport={() => window.api.send('upload-informes')}
 			/>
+			<ProgressBar show={!showAlert} message={message} progress={progress} />
 			<Alert
-				type="confirm"
-				message="¿Estás seguro de que deseas eliminar este informe?"
+				type={alertType}
+				message={message}
 				show={showAlert}
 				onConfirm={async () => {
 					await deleteInforme(editandoId)
 					await cargarInformes()
 					cancelarEdicion()
+					setMessage("")
 					setShowAlert(false)
 				}}
-				onCancel={() => setShowAlert(false)}
+				onCancel={() => {
+					setMessage("")
+					setShowAlert(false)
+					if (alertType == "success")
+						cargarInformes(true)
+				}}
 			/>
 			{!editandoId ? (
 				<div>
@@ -184,15 +201,6 @@ export default function Informes() {
 							</tbody>
 						</table>
 					</div>
-					<div className="flex justify-end mt-2">
-						<button
-							className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
-							onClick={() => window.api.send('upload-informes')}
-						>
-							Importar Excel
-						</button>
-					</div>
-					<ProgressBar show={!showAlert} message={message} progress={progress} />
 				</div>
 			) : (
 				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">

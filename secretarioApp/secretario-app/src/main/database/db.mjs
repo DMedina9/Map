@@ -41,7 +41,8 @@ const initDb = async () => {
       telefono_movil INTEGER,
       contacto_emergencia TEXT,
       tel_contacto_emergencia INTEGER,
-      correo_contacto_emergencia TEXT
+      correo_contacto_emergencia TEXT,
+      UNIQUE(nombre, apellidos)
     );
   `);
 
@@ -57,7 +58,8 @@ const initDb = async () => {
       id_tipo_publicador INTEGER,
       horas INTEGER,
       notas TEXT,
-      horas_SS INTEGER
+      horas_SS INTEGER,
+      UNIQUE(id_publicador, mes)
     );
   `);
 
