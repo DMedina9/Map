@@ -208,6 +208,83 @@ const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publi
 	}
 	return { success: true, message: `Informes importados: ${count}` }
 }
+const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath, showMessage }) => {
+	if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
+
+	if (!workbook) {
+		try {
+			workbook = xlsx.readFile(filePath, { cellDates: true })
+		} catch (err) {
+			return { success: false, message: 'Error al leer el archivo: ' + err.message }
+		}
+	}
+
+	const sheet = workbook.Sheets['Informes']
+	if (!sheet) return { success: false, message: 'No se encontró la hoja "Informes"' }
+
+	const initialized = !!db
+	if (!initialized) db = await initDb()
+
+	if (!Tipo_Publicador) {
+		await insertTipoPublicador(db)
+		Tipo_Publicador = await allAsync(db, `select * from Tipo_Publicador`)
+	}
+
+	if (!Publicadores) {
+		await insertPublicadores({ db, Privilegio, Tipo_Publicador, workbook })
+		Publicadores = await allAsync(db, `select * from Publicadores`)
+	}
+	let count = 0
+	try {
+		// Importar informes
+		const jsonInf = xlsx.utils.sheet_to_json(sheet)
+		for (let p of jsonInf) {
+			let publicador = Publicadores.find(
+				(pub) => (pub.apellidos ? pub.apellidos + ', ' : '') + pub.nombre == p.Nombre
+			)
+			if (!publicador) continue
+			if (p.Nombre === 'Total') continue
+			let params = [
+				publicador.id,
+				p.Mes instanceof Date ? p.Mes.toISOString().substring(0, 10) : null,
+				p['Mes enviado'] instanceof Date ? p['Mes enviado'].toISOString().substring(0, 10) : null,
+				p['Predicó en el mes'] ? 1 : 0,
+				p['Cursos bíblicos'],
+				p['Tipo Publicador'] === 'Publicador'
+					? 1
+					: p['Tipo Publicador'] === 'Precursor regular'
+						? 2
+						: 3,
+				p.Horas,
+				p.Notas,
+				p['Horas S. S. (PR)']
+			]
+			await runAsync(
+				db,
+				`insert or ignore into Informes(
+					id_publicador, mes, mes_enviado, predico_en_el_mes, cursos_biblicos, id_tipo_publicador, horas, notas, horas_SS
+				) values (?,?,?,?,?,?,?,?,?)
+				 ON CONFLICT(id_publicador, mes) DO UPDATE SET
+					mes_enviado = excluded.mes_enviado,
+					predico_en_el_mes = excluded.predico_en_el_mes,
+					cursos_biblicos = excluded.cursos_biblicos,
+					id_tipo_publicador = excluded.id_tipo_publicador,
+					horas = excluded.horas,
+					notas = excluded.notas,
+					horas_SS = excluded.horas_SS;`,
+				params
+			)
+			count++;
+			if (showMessage)
+				showMessage({ progress: Math.round(100 * count / jsonInf.length), message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...` });
+		}
+	} catch (e) {
+		return { success: false, message: e.toString() }
+	} finally {
+		if (!initialized) await db.close()
+	}
+	return { success: true, message: `Informes importados: ${count}` }
+}
 const insertAsistencias = async ({ workbook, db, filePath, showMessage }) => {
 	if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
@@ -288,4 +365,4 @@ const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx', showMes
 	return { success: true }
 }
 //importExcel('C:\\Users\\DanielMedina\\OneDrive\\Congregación Jardines de Andalucía\\Secretario\\Jardines de Andalucía.xlsx').catch((err) => console.error(err));
-export { insertAsistencias, insertInformes, insertPublicadores, importExcel }
+export { insertTipoPublicador, insertAsistencias, insertInformes, insertInformesGrupo, insertPublicadores, importExcel }
