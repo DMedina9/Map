@@ -5,7 +5,13 @@ import SaveIcon from '@mui/icons-material/Save'
 import DeleteIcon from '@mui/icons-material/Delete'
 import CancelIcon from '@mui/icons-material/Cancel'
 import AddIcon from '@mui/icons-material/Add'
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+
 const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImport }) => {
+	const theme = useTheme();
+	const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-9 gap-4 p-4 mb-4 border-b">
 			<div
@@ -29,11 +35,11 @@ const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImp
 							startIcon={<CloudUploadIcon />}
 							onClick={onImport}
 						>
-							Importar
+							{!isSmallScreen && "Importar"}
 						</Button>
 					)}
 					<Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
-						Agregar
+						{!isSmallScreen && "Agregar"}
 					</Button>
 				</>
 			) : (
@@ -43,7 +49,7 @@ const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImp
 						startIcon={<SaveIcon />}
 						onClick={onSave}
 					>
-						{editandoId > 0 ? 'Guardar' : 'Agregar'}
+						{isSmallScreen ? "" : editandoId > 0 ? 'Guardar' : 'Agregar'}
 					</Button>
 					{editandoId > 0 && (
 						<Button
@@ -51,7 +57,7 @@ const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImp
 							startIcon={<DeleteIcon />}
 							onClick={onDelete}
 						>
-							Eliminar
+							{!isSmallScreen && "Eliminar"}
 						</Button>
 					)}
 					<Button
@@ -59,7 +65,7 @@ const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImp
 						startIcon={<CancelIcon />}
 						onClick={onCancel}
 					>
-						Cancelar
+						{!isSmallScreen && "Cancelar"}
 					</Button>
 				</>
 			)}

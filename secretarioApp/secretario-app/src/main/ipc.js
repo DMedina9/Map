@@ -356,7 +356,7 @@ export default function initIPC() {
                 contacto_emergencia,
                 tel_contacto_emergencia,
                 correo_contacto_emergencia)
-              values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+              values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 			const result = await stmt.run([
 				publicador.nombre,
 				publicador.apellidos,
@@ -439,17 +439,17 @@ export default function initIPC() {
 	})
 	ipcMain.handle('delete-publicador', async (event, publicadorId) => {
 		try {
-			const db = await initDb()
-			const stmt = await db.prepare(`
-				delete from Informes where id_publicador = ?;
-                delete from Publicadores where id = ?`)
-			const result = await stmt.run([publicadorId, publicadorId])
-			await stmt.finalize()
-			await db.close()
-			return { success: true, changes: result.changes }
+			const db = await initDb();
+
+			await db.run(`DELETE FROM Informes WHERE id_publicador = ?`, publicadorId);
+			const result = await db.run(`DELETE FROM Publicadores WHERE id = ?`, publicadorId);
+
+			await db.close();
+
+			return { success: true, changes: result.changes };
 		} catch (error) {
-			console.error('Database delete error:', error)
-			return { success: false, error: error.message }
+			console.error('Database delete error:', error);
+			return { success: false, error: error.message };
 		}
 	})
 	ipcMain.handle('get-S3', async (event, [anio, type]) => {

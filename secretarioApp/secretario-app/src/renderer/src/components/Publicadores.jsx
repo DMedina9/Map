@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
 import ButtonBar from './utils/ButtonBar'
-import { DataField, DataFieldSelect } from './utils/DataFields'
 import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
 import ProgressBar from './utils/ProgressBar'
 import DataTable from "./utils/DataTable"
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const addPublicador = async (publicador) => await window.api.invoke('add-publicador', publicador)
@@ -23,8 +27,8 @@ const initialForm = {
 export default function Publicadores() {
 	// Estado para los datos, filtro, edición y formulario
 	const [datos, setDatos] = useState([])
-	const [filtro, setFiltro] = useState('')
 	const [editandoId, setEditandoId] = useState(null)
+	const [editandoGridId, setEditandoGridId] = useState(null)
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
 	const [loading, setLoading] = useState(true) // Estado para loading
@@ -50,16 +54,6 @@ export default function Publicadores() {
 	const handleChange = (e) => {
 		setForm({ ...form, [e.target.name]: e.target.value })
 	}
-
-	// Maneja el cambio del filtro de busqueda
-	const manejarFiltro = (e) => {
-		setFiltro(e.target.value)
-	}
-
-	// Filtra los datos para mostrar
-	const datosFiltrados = datos.filter((item) =>
-		`${item.nombre} ${item.apellidos}`.toLowerCase().includes(filtro.toLowerCase())
-	)
 
 	// Iniciar la edición de un registro
 	const iniciarEdicion = (item) => {
@@ -90,28 +84,27 @@ export default function Publicadores() {
 		setEditandoId(null)
 		setForm(initialForm)
 	}
-const columns = [
-//  { field: 'id', headerName: 'ID', width: 70 },
-  {
-    field: 'nombre',
-    headerName: 'Nombre',
-//    description: 'This column has a value getter and is not sortable.',
-    sortable: true,
-    flex: 1,
-    minWidth: 350,
-    valueGetter: (value, row) => `${row.nombre || ''} ${row.apellidos || ''}`,
-  },
-  {
-    field: 'grupo',
-    headerName: 'Grupo',
-    type: 'number',
-    width: 150,
-  }
-];
+	const columns = [
+		//  { field: 'id', headerName: 'ID', width: 70 },
+		{
+			field: 'nombre',
+			headerName: 'Nombre',
+			//    description: 'This column has a value getter and is not sortable.',
+			sortable: true,
+			flex: 1,
+			minWidth: 350,
+			valueGetter: (value, row) => `${row.nombre || ''} ${row.apellidos || ''}`,
+		},
+		{
+			field: 'grupo',
+			headerName: 'Grupo',
+			type: 'number',
+			width: 150,
+		}
+	];
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
-			<DataTable rows={datos} columns={columns} />
 			<Loading loading={loading} />
 			<ButtonBar
 				title="Publicadores"
@@ -132,7 +125,7 @@ const columns = [
 				message={message}
 				show={showAlert}
 				onConfirm={async () => {
-					await deletePublicador(editandoId)
+					await deletePublicador(editandoId || editandoGridId)
 					await cargarPublicadores()
 					cancelarEdicion()
 					setMessage("")
@@ -146,198 +139,148 @@ const columns = [
 				}}
 			/>
 			{!editandoId ? (
-				<div>
-					<input
-						type="search"
-						placeholder="Buscar por nombre..."
-						value={filtro}
-						onChange={manejarFiltro}
-						className="w-full px-4 py-2 my-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-					/>
-					<div className="max-h-96 overflow-y-auto rounded-lg border shadow-md">
-						<table className="w-full table-auto border-collapse">
-							<thead className="sticky top-0 bg-white">
-								<tr className="bg-gray-100">
-									<th className="px-4 py-2 text-left">Nombre</th>
-									<th className="px-4 py-2 text-left">Grupo</th>
-									<th className="px-4 py-2 text-left">Acciones</th>
-								</tr>
-							</thead>
-							<tbody>
-								{datosFiltrados.length > 0 ? (
-									datosFiltrados.map((item) => (
-										<tr
-											key={item.id}
-											className={
-												'border-b' +
-												(item.id === editandoId
-													? ' bg-blue-400 text-white'
-													: '')
-											}
-										>
-											<td className="px-4 py-2">
-												{item.nombre} {item.apellidos}
-											</td>
-											<td className="px-4 py-2">{item.grupo}</td>
-											<td className="px-4 py-2 space-x-2">
-												<button
-													className="bg-green-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
-													onClick={() => iniciarEdicion(item)}
-												>
-													Editar
-												</button>
-											</td>
-										</tr>
-									))
-								) : (
-									<tr>
-										<td colSpan="3" className="text-center py-4 text-gray-500">
-											No hay publicadores registrados.
-										</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
-					</div>
-				</div>
+				<DataTable rows={datos} columns={columns} handleEditClick={(id) => iniciarEdicion(datos.find(item => item.id == id))}
+					handleDeleteClick={(id) => {
+						setEditandoGridId(id)
+						setAlertType("confirm")
+						setMessage("¿Estás seguro de que deseas eliminar este publicador?")
+						setShowAlert(true)
+					}} />
 			) : (
 				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">
 					<div className="p-6 bg-white rounded shadow-md w-full mx-auto">
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							<DataField
-								desc="Nombre"
+							<TextField
+								label="Nombre"
 								name="nombre"
-								form={form}
-								handleChange={handleChange}
-								required={true}
+								required
+								defaultValue={form.nombre}
+								onChange={handleChange}
 							/>
-							<DataField
-								desc="Apellidos"
+							<TextField
+								label="Apellidos"
 								name="apellidos"
-								form={form}
-								handleChange={handleChange}
-								required={true}
+								required
+								defaultValue={form.apellidos}
+								onChange={handleChange}
 							/>
-							<DataFieldSelect
-								desc="Sexo"
+							<TextField
 								name="sexo"
-								form={form}
-								handleChange={handleChange}
-								required={true}
+								select
+								required
+								label="Sexo"
+								defaultValue={form.sexo}
+								helperText="Selecciona el género"
 							>
-								<option value="">Selecciona</option>
-								<option value="H">Masculino</option>
-								<option value="M">Femenino</option>
-							</DataFieldSelect>
-							<DataField
-								desc="Fecha de nacimiento"
+								<MenuItem value="H">Masculino</MenuItem>
+								<MenuItem value="M">Femenino</MenuItem>
+							</TextField>
+							<TextField
+								label="Fecha de nacimiento"
 								name="fecha_nacimiento"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.fecha_nacimiento}
+								onChange={handleChange}
 								type="date"
 							/>
-							<DataField
-								desc="Grupo"
+							<TextField
+								label="Grupo"
 								name="grupo"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.grupo}
+								onChange={handleChange}
 								type="number"
 							/>
-							<DataField
-								desc="Fecha de bautismo"
+							<TextField
+								label="Fecha de bautismo"
 								name="fecha_bautismo"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.fecha_bautismo}
+								onChange={handleChange}
 								type="date"
 							/>
-							<DataFieldSelect
-								desc="Privilegio"
+							<TextField
 								name="id_privilegio"
-								form={form}
-								handleChange={handleChange}
+								select
+								label="Privilegio"
+								defaultValue={form.id_privilegio}
 							>
-								<option value="">Selecciona</option>
-								<option value="1">Anciano</option>
-								<option value="2">Siervo ministerial</option>
-							</DataFieldSelect>
-							<DataFieldSelect
-								desc="Sup. grupo"
+								<MenuItem value="1">Anciano</MenuItem>
+								<MenuItem value="2">Siervo ministerial</MenuItem>
+							</TextField>
+							<TextField
 								name="sup_grupo"
-								form={form}
-								handleChange={handleChange}
+								select
+								label="Sup. grupo"
+								defaultValue={form.sup_grupo}
 							>
-								<option value="">Selecciona</option>
-								<option value="1">Superintendente</option>
-								<option value="2">Auxiliar</option>
-							</DataFieldSelect>
-							<DataFieldSelect
-								desc="Tipo publicador"
+								<MenuItem value="1">Superintendente</MenuItem>
+								<MenuItem value="2">Auxiliar</MenuItem>
+							</TextField>
+							<TextField
 								name="id_tipo_publicador"
-								form={form}
-								handleChange={handleChange}
+								select
+								label="Tipo publicador"
+								defaultValue={form.id_tipo_publicador}
 							>
-								<option value="">Selecciona</option>
-								<option value="1">Publicador</option>
-								<option value="2">Precursor regular</option>
-								<option value="3">Precursor auxiliar</option>
-							</DataFieldSelect>
-							<DataField
-								desc="Ungido"
-								name="ungido"
-								form={form}
-								handleChange={handleChange}
-								type="checkbox"
-							/>
-							<DataField
-								desc="Calle"
+								<MenuItem value="1">Publicador</MenuItem>
+								<MenuItem value="2">Precursor regular</MenuItem>
+								<MenuItem value="3">Precursor auxiliar</MenuItem>
+							</TextField>
+							<FormGroup>
+								<FormControlLabel control={<Checkbox
+									name="ungido"
+									defaultChecked={form.ungido}
+									onChange={handleChange}
+								/>} label="Ungido" />
+							</FormGroup>
+							<TextField
+								label="Calle"
 								name="calle"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.calle}
+								onChange={handleChange}
 							/>
-							<DataField
-								desc="Núm."
+							<TextField
+								label="Número"
 								name="num"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.num}
+								onChange={handleChange}
 							/>
-							<DataField
-								desc="Colonia"
+							<TextField
+								label="Colonia"
 								name="colonia"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.colonia}
+								onChange={handleChange}
 							/>
-							<DataField
-								desc="Teléfono fijo"
+							<TextField
+								label="Teléfono fijo"
 								name="telefono_fijo"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.telefono_fijo}
+								onChange={handleChange}
 								type="tel"
 							/>
-							<DataField
-								desc="Teléfono móvil"
+							<TextField
+								label="Teléfono móvil"
 								name="telefono_movil"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.telefono_movil}
+								onChange={handleChange}
 								type="tel"
 							/>
-							<DataField
-								desc="Contacto de emergencia"
+							<TextField
+								label="Contacto de emergencia"
 								name="contacto_emergencia"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.contacto_emergencia}
+								onChange={handleChange}
 							/>
-							<DataField
-								desc="Tel. contacto de emergencia"
+							<TextField
+								label="Tel. contacto de emergencia"
 								name="tel_contacto_emergencia"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.tel_contacto_emergencia}
+								onChange={handleChange}
 								type="tel"
 							/>
-							<DataField
-								desc="Correo contacto de emergencia"
+							<TextField
+								label="Correo contacto de emergencia"
 								name="correo_contacto_emergencia"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.correo_contacto_emergencia}
+								onChange={handleChange}
 								type="email"
 							/>
 						</div>

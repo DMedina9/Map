@@ -4,6 +4,12 @@ import { DataField, DataFieldSelect } from './utils/DataFields'
 import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
 import ProgressBar from './utils/ProgressBar'
+import DataTable from "./utils/DataTable"
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Checkbox from '@mui/material/Checkbox';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const fetchInformes = async () => await window.api.invoke('get-informes', ['', '', ''])
@@ -16,6 +22,7 @@ const initialForm = {
 	id_publicador: '',
 	mes: '',
 	mes_enviado: '',
+	id_tipo_publicador: '',
 	participo_en_el_mes: '',
 	horas: '',
 	notas: ''
@@ -25,7 +32,6 @@ export default function Informes() {
 	// Estado para los datos, filtro, edición y formulario
 	const [datos, setDatos] = useState([])
 	const [publicadores, setPublicadores] = useState([])
-	const [filtro, setFiltro] = useState('')
 	const [editandoId, setEditandoId] = useState(null)
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
@@ -57,18 +63,6 @@ export default function Informes() {
 	const handleChange = (e) => {
 		setForm({ ...form, [e.target.name]: e.target.value })
 	}
-
-	// Maneja el cambio del filtro de busqueda
-	const manejarFiltro = (e) => {
-		setFiltro(e.target.value)
-	}
-
-	// Filtra los datos para mostrar
-	const datosFiltrados = datos.filter((item) =>
-		`${item.publicador} ${item.mes.substring(0, 7)} ${item.Estatus}`
-			.toLowerCase()
-			.includes(filtro.toLowerCase())
-	)
 
 	// Iniciar la edición de un registro
 	const iniciarEdicion = (item) => {
@@ -106,6 +100,37 @@ export default function Informes() {
 		setForm(initialForm)
 	}
 
+	const columns = [
+		//  { field: 'id', headerName: 'ID', width: 70 },
+		{
+			field: 'publicador',
+			headerName: 'Publicador',
+			//    description: 'This column has a value getter and is not sortable.',
+			sortable: true,
+			flex: 1,
+			minWidth: 350
+		},
+		{
+			field: 'mes',
+			headerName: 'Mes',
+			//type: 'date',
+			width: 100,
+			valueGetter: (value, row) => value?.substring(0, 7)
+		},
+		{
+			field: 'predico_en_el_mes',
+			headerName: 'Predicó',
+			type: 'boolean',
+			width: 100,
+			valueGetter: (value, row) => (row.predico_en_el_mes || 0) == 1,
+		},
+		{
+			field: 'Estatus',
+			headerName: 'Estatus',
+			width: 150,
+		}
+	];
+
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
 			<Loading loading={loading} />
@@ -142,142 +167,84 @@ export default function Informes() {
 				}}
 			/>
 			{!editandoId ? (
-				<div>
-					<input
-						type="search"
-						placeholder="Buscar por nombre..."
-						value={filtro}
-						onChange={manejarFiltro}
-						className="w-full px-4 py-2 my-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-					/>
-					<div className="max-h-96 overflow-y-auto rounded-lg border shadow-md">
-						<table className="w-full table-auto border-collapse">
-							<thead className="sticky top-0 bg-white">
-								<tr className="bg-gray-100">
-									<th className="px-4 py-2 text-left">Publicador</th>
-									<th className="px-4 py-2 text-left">Mes</th>
-									<th className="px-4 py-2 text-left">Predicó</th>
-									<th className="px-4 py-2 text-left">Estatus</th>
-									<th className="px-4 py-2 text-left">Acciones</th>
-								</tr>
-							</thead>
-							<tbody>
-								{datosFiltrados.length > 0 ? (
-									datosFiltrados.map((item) => (
-										<tr
-											key={item.id}
-											className={
-												'border-b' +
-												(item.id === editandoId
-													? ' bg-blue-400 text-white'
-													: '')
-											}
-										>
-											<td className="px-4 py-2">{item.publicador}</td>
-											<td className="px-4 py-2">
-												{item.mes.substring(0, 7)}
-											</td>
-											<td className="px-4 py-2">
-												{item.predico_en_el_mes ? 'Sí' : 'No'}
-											</td>
-											<td className="px-4 py-2">{item.Estatus}</td>
-											<td className="px-4 py-2 space-x-2">
-												<button
-													className="bg-green-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
-													onClick={() => iniciarEdicion(item)}
-												>
-													Editar
-												</button>
-											</td>
-										</tr>
-									))
-								) : (
-									<tr>
-										<td colSpan="3" className="text-center py-4 text-gray-500">
-											No hay informes registrados.
-										</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
-					</div>
-				</div>
+				<DataTable rows={datos} columns={columns} handleEditClick={(id) => iniciarEdicion(datos.find(item => item.id == id))} />
 			) : (
 				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">
 					<div className="p-6 bg-white rounded shadow-md w-full mx-auto">
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							<DataFieldSelect
-								desc="Publicador"
+							<TextField
+								label="Publicador"
 								name="id_publicador"
-								form={form}
+								select
+								defaultValue={form.id_publicador}
 								handleChange={handleChange}
-								required={true}
+								required
 							>
-								<option value="">Selecciona</option>
 								{publicadores.map((pub) => (
-									<option key={pub.id} value={pub.id}>
+									<MenuItem key={pub.id} value={pub.id}>
 										{pub.nombre} {pub.apellidos}
-									</option>
+									</MenuItem>
 								))}
-							</DataFieldSelect>
-							<DataField
-								desc="Mes"
+							</TextField>
+							<TextField
+								label="Mes"
 								name="mes"
-								form={form}
+								defaultValue={form.mes}
 								handleChange={handleChange}
 								type="date"
 							/>
-							<DataField
-								desc="Enviado"
+							<TextField
+								label="Enviado"
 								name="mes_enviado"
-								form={form}
+								defaultValue={form.mes_enviado}
 								handleChange={handleChange}
 								type="date"
 							/>
-							<DataField
-								desc="Predicó en el mes"
-								name="predico_en_el_mes"
-								form={form}
-								handleChange={handleChange}
-								type="checkbox"
-							/>
-							<DataField
-								desc="Cursos bíblicos"
+							<FormGroup>
+								<FormControlLabel control={<Checkbox
+									name="predico_en_el_mes"
+									defaultChecked={form.predico_en_el_mes}
+									onChange={handleChange}
+								/>} label="Predicó en el mes" />
+							</FormGroup>
+							<TextField
+								label="Cursos bíblicos"
 								name="cursos_biblicos"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.cursos_biblicoss}
+								onChange={handleChange}
 								type="number"
 							/>
-							<DataFieldSelect
-								desc="Tipo publicador"
+							<TextField
+								label="Tipo publicador"
 								name="id_tipo_publicador"
-								form={form}
+								select
+								defaultValue={form.id_tipo_publicador}
 								handleChange={handleChange}
 							>
-								<option value="">Selecciona</option>
-								<option value="1">Publicador</option>
-								<option value="2">Precursor regular</option>
-								<option value="3">Precursor auxiliar</option>
-							</DataFieldSelect>
-							<DataField
-								desc="Horas"
+								<MenuItem value="1">Publicador</MenuItem>
+								<MenuItem value="2">Precursor regular</MenuItem>
+								<MenuItem value="3">Precursor auxiliar</MenuItem>
+							</TextField>
+							<TextField
+								label="Horas"
 								name="horas"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.horas}
+								onChange={handleChange}
 								type="number"
 							/>
-							<DataField
-								desc="Horas Servicio Sagrado"
+							<TextField
+								label="Horas Servicio Sagrado"
 								name="horas_SS"
-								form={form}
-								handleChange={handleChange}
+								defaultValue={form.horas_SS}
+								onChange={handleChange}
 								type="number"
 							/>
-							<DataField
-								desc="Notas"
+							<TextField
+								label="Notas"
 								name="notas"
-								form={form}
-								handleChange={handleChange}
+								multiline
+								defaultValue={form.notas}
+								onChange={handleChange}
 							/>
 						</div>
 					</div>
