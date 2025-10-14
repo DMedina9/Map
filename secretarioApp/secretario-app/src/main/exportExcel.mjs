@@ -11,6 +11,20 @@ const dataFields = {
     Horas: 'Horas\r\n (Si es precursor o misionero que sirve en el campo)',
     Notas: 'Notas'
 }
+const MONTH_NAMES = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre'
+]
 const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath, showMessage, sheetName }) => {
     if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
@@ -22,6 +36,8 @@ const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, 
         }
     }
     sheetName = sheetName || 'Septiembre 2025'
+    const [month_name, year] = sheetName.split(' ');
+    const month = new Date(year * 1, MONTH_NAMES.indexOf(month_name), 1)
     const sheet = workbook.Sheets[sheetName]
     if (!sheet) return { success: false, message: `No se encontró la hoja "${sheetName}"` }
 
@@ -38,31 +54,58 @@ const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, 
         Publicadores = await allAsync(db, `select * from Publicadores`)
     }
     let count = 0
+    const dataSource = []
     try {
         // Importar informes
         const jsonInf = xlsx.utils.sheet_to_json(sheet)
-        console.log(jsonInf)
+        let tipo_publicador = "Precursor regular";
         for (let p of jsonInf) {
-//        console.log(p)
-            if (p.Nombre === 'Nombre' || p.Nombre === 'Precursores regulares' ||p.Nombre === 'Publicadores') continue
+            //        console.log(p)
+            if (p.Nombre === 'Nombre' || p.Nombre === 'Precursores regulares' || p.Nombre === 'Publicadores') {
+                switch (p.Nombre) {
+                    case "Precursores regulares":
+                        tipo_publicador = "Precursor regular"
+                        break;
+                    case "Publicadores":
+                        tipo_publicador = p[dataFields["Auxiliar"]] ? "Precursor auxiliar" : "Publicador"
+                        break;
+                }
+                continue
+            }
             let publicador = Publicadores.find(
                 (pub) => pub.nombre + (pub.apellidos ? ' ' + pub.apellidos : '') == p.Nombre
             )
-            if (!publicador) continue
-            /*let params = [
-                publicador.id,
-                p.Mes instanceof Date ? p.Mes.toISOString().substring(0, 10) : null,
-                p['Mes enviado'] instanceof Date ? p['Mes enviado'].toISOString().substring(0, 10) : null,
-                p['Predicó en el mes'] ? 1 : 0,
-                p['Cursos bíblicos'],
-                p['Tipo Publicador'] === 'Publicador'
+            dataSource.push({
+                id_publicador: publicador?.id,
+                nombre: p.Nombre,
+                mes: month.toISOString().substring(0, 10),
+                mes_enviado: month.toISOString().substring(0, 10),//mes enviado
+                participo: p[dataFields.Participo] ? 1 : 0,
+                cursos: p[dataFields.Cursos],
+                id_tipo_publicador: tipo_publicador === 'Publicador'
                     ? 1
-                    : p['Tipo Publicador'] === 'Precursor regular'
+                    : tipo_publicador === 'Precursor regular'
                         ? 2
                         : 3,
-                p.Horas,
-                p.Notas,
-                p['Horas S. S. (PR)']
+                horas: p[dataFields.Horas],
+                notas: p[dataFields.Notas],
+                horas_SS: null //Horas S. S. (PR)
+            })
+            /*if (!publicador) continue
+            let params = [
+                publicador.id,
+                month.toISOString().substring(0, 10),
+                month.toISOString().substring(0, 10),//mes enviado
+                p[dataFields.Participo] ? 1 : 0,
+                p[dataFields.Cursos],
+                tipo_publicador === 'Publicador'
+                    ? 1
+                    : tipo_publicador === 'Precursor regular'
+                        ? 2
+                        : 3,
+                p[dataFields.Horas],
+                p[dataFields.Notas],
+                null //Horas S. S. (PR)
             ]
             await runAsync(
                 db,
@@ -82,12 +125,14 @@ const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, 
             count++;
             if (showMessage)
                 showMessage({ progress: Math.round(100 * count / jsonInf.length), message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...` });
-        */}
+        */
+        }
     } catch (e) {
         return { success: false, message: e.toString() }
     } finally {
         if (!initialized) await db.close()
     }
-    return { success: true, message: `Informes importados: ${count}` }
+    return { success: true, dataSource }
 }
-console.log( insertInformesGrupo({filePath: `C:\\Users\\DanielMedina\\OneDrive\\Congregación Jardines de Andalucía\\Secretario\\Informes por grupo\\Informes - Grupo 1.xlsx`}) )
+const data = await insertInformesGrupo({ filePath: `C:\\Users\\DanielMedina\\OneDrive\\Congregación Jardines de Andalucía\\Secretario\\Informes por grupo\\Informes - Grupo 1.xlsx` })
+console.log(data)

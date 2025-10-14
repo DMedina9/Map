@@ -73,7 +73,7 @@ export default function S1() {
 										</div>
 									)}
 									<div className="bg-white border border-gray-400 text-center font-normal text-lg px-4 py-2 rounded w-24 mx-2 inline-block">
-										{sub.valor}
+										{sub.valor || 0}
 									</div>
 								</div>
 							))}

@@ -4,6 +4,7 @@ import { DataField, DataFieldSelect } from './utils/DataFields'
 import Alert from './utils/Alert'
 import Loading from './utils/Loading' // Importa el componente Loading
 import ProgressBar from './utils/ProgressBar'
+import DataTable from "./utils/DataTable"
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const addPublicador = async (publicador) => await window.api.invoke('add-publicador', publicador)
@@ -80,6 +81,7 @@ export default function Publicadores() {
 		} else {
 			await addPublicador(form)
 		}
+		setDatos([])
 		await cargarPublicadores()
 		cancelarEdicion()
 	}
@@ -88,9 +90,28 @@ export default function Publicadores() {
 		setEditandoId(null)
 		setForm(initialForm)
 	}
+const columns = [
+//  { field: 'id', headerName: 'ID', width: 70 },
+  {
+    field: 'nombre',
+    headerName: 'Nombre',
+//    description: 'This column has a value getter and is not sortable.',
+    sortable: true,
+    flex: 1,
+    minWidth: 350,
+    valueGetter: (value, row) => `${row.nombre || ''} ${row.apellidos || ''}`,
+  },
+  {
+    field: 'grupo',
+    headerName: 'Grupo',
+    type: 'number',
+    width: 150,
+  }
+];
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			<DataTable rows={datos} columns={columns} />
 			<Loading loading={loading} />
 			<ButtonBar
 				title="Publicadores"
