@@ -5,71 +5,73 @@ import SaveIcon from '@mui/icons-material/Save'
 import DeleteIcon from '@mui/icons-material/Delete'
 import CancelIcon from '@mui/icons-material/Cancel'
 import AddIcon from '@mui/icons-material/Add'
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
+import Toolbar from '@mui/material/Toolbar'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
 
-const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImport }) => {
-	const theme = useTheme();
-	const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+const ButtonBar = ({ title, editandoId, onSave, onCancel, onAdd, onDelete, onImport, loading }) => {
+	const theme = useTheme()
+	const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-9 gap-4 p-4 mb-4 border-b">
-			<div
-				className={
-					!editandoId
-						? onImport
-							? 'col-span-7'
-							: 'col-span-8'
-						: editandoId > 0
-							? 'col-span-6'
-							: 'col-span-7'
-				}
-			>
-				<h1 className="text-2xl font-bold mb-4 text-gray-800">{title}</h1>
-			</div>
+		<Toolbar>
+			<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+				{title}
+			</Typography>
 			{!editandoId ? (
 				<>
 					{onImport && (
-						<Button
+						<Button sx={{ margin: 1 }}
 							variant="contained"
 							startIcon={<CloudUploadIcon />}
 							onClick={onImport}
+							loading={loading}
 						>
-							{!isSmallScreen && "Importar"}
+							{!isSmallScreen && 'Importar'}
 						</Button>
 					)}
-					<Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
-						{!isSmallScreen && "Agregar"}
+					<Button sx={{ margin: 1 }}
+						variant="contained"
+						startIcon={<AddIcon />}
+						onClick={onAdd}
+						loading={loading}
+					>
+						{!isSmallScreen && 'Agregar'}
 					</Button>
 				</>
 			) : (
 				<>
-					<Button
+					<Button sx={{ margin: 1 }}
 						variant="contained"
 						startIcon={<SaveIcon />}
 						onClick={onSave}
+						loading={loading}
 					>
-						{isSmallScreen ? "" : editandoId > 0 ? 'Guardar' : 'Agregar'}
+						{isSmallScreen ? '' : editandoId > 0 ? 'Guardar' : 'Agregar'}
 					</Button>
 					{editandoId > 0 && (
-						<Button
+						<Button sx={{ margin: 1 }}
 							variant="outlined"
 							startIcon={<DeleteIcon />}
 							onClick={onDelete}
+							loading={loading}
 						>
-							{!isSmallScreen && "Eliminar"}
+							{!isSmallScreen && 'Eliminar'}
 						</Button>
 					)}
-					<Button
+					<Button sx={{ margin: 1 }}
 						variant="contained"
 						startIcon={<CancelIcon />}
 						onClick={onCancel}
+						loading={loading}
 					>
-						{!isSmallScreen && "Cancelar"}
+						{!isSmallScreen && 'Cancelar'}
 					</Button>
 				</>
 			)}
-		</div>
+		</Toolbar>
 	)
 }
 ButtonBar.propTypes = {
@@ -79,7 +81,9 @@ ButtonBar.propTypes = {
 	onCancel: PropTypes.func.isRequired,
 	onAdd: PropTypes.func.isRequired,
 	onDelete: PropTypes.func.isRequired,
-	onImport: PropTypes.func
+	onImport: PropTypes.func,
+	loading: PropTypes.bool
 }
 
 export default ButtonBar
+

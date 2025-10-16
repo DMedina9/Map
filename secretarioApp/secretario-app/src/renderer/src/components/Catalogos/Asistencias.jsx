@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import ButtonBar from './utils/ButtonBar'
-import Alert from './utils/Alert'
-import Loading from './utils/Loading' // Importa el componente Loading
-import ProgressBar from './utils/ProgressBar'
-import DataTable from "./utils/DataTable"
-import TextField from '@mui/material/TextField';
+import ButtonBar from '../utils/ButtonBar'
+import Alert from '../utils/Alert'
+import Loading from '../utils/Loading' // Importa el componente Loading
+import ProgressBar from '../utils/ProgressBar'
+import { DataTableEdit } from '../utils/DataTable'
+import TextField from '@mui/material/TextField'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import dayjs from 'dayjs'
 
 const fetchAsistencias = async () => await window.api.invoke('get-asistencias')
 const addAsistencia = async (asistencia) => await window.api.invoke('add-asistencia', asistencia)
@@ -21,6 +23,7 @@ export default function Asistencias() {
 	// Estado para los datos, filtro, edición y formulario
 	const [datos, setDatos] = useState([])
 	const [editandoId, setEditandoId] = useState(null)
+	const [editandoGridId, setEditandoGridId] = useState(null)
 	const [form, setForm] = useState(initialForm)
 	const [showAlert, setShowAlert] = useState(false)
 	const [loading, setLoading] = useState(true) // Estado para loading
@@ -59,7 +62,18 @@ export default function Asistencias() {
 		setDatos(success ? data : [])
 		setLoading(false)
 	}
-
+	const handleSaveClick = (id) => {
+		const row = datos.find((item) => item.id == id)
+		const saveData = async () => {
+			if (row.id > 0) {
+				await updateAsistencia(row.id, row)
+			} else {
+				await addAsistencia(row)
+			}
+			await cargarAsistencias()
+		}
+		saveData()
+	}
 	const handleSubmit = async (e) => {
 		e.preventDefault()
 		if (editandoId > 0) {
@@ -83,90 +97,59 @@ export default function Asistencias() {
 			headerName: 'Fecha',
 			//type: 'date',
 			sortable: true,
-			flex: 1,
 			minWidth: 250,
-			valueGetter: (value, row) => row.fecha?.substring(0, 10)
+			valueGetter: (value) => (value ? dayjs(value).format('DD/MM/YYYY') : value)
 		},
 		{
 			field: 'tipo_asistencia',
 			headerName: 'Tipo',
-			width: 200,
+			width: 200
 		},
 		{
 			field: 'asistentes',
 			headerName: 'Asistencia',
 			type: 'number',
 			width: 100
+		},
+		{
+			field: 'notas',
+			headerName: 'Notas',
+			flex: 1
 		}
-	];
+	]
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
 			<Loading loading={loading} />
 			<ButtonBar
 				title="Asistencias"
+				loading={loading}
 				editandoId={editandoId}
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
 				onDelete={() => {
-					setAlertType("confirm")
-					setMessage("¿Estás seguro de que deseas eliminar esta asistencia?")
+					setAlertType('confirm')
+					setMessage('¿Estás seguro de que deseas eliminar esta asistencia?')
 					setShowAlert(true)
 				}}
 				onImport={() => window.api.send('upload-asistencias')}
 			/>
 			<ProgressBar show={!showAlert} message={message} progress={progress} />
-			<Alert
-				type={alertType}
-				message={message}
-				show={showAlert}
-				onConfirm={async () => {
-					await deleteAsistencia(editandoId)
-					await cargarAsistencias()
-					cancelarEdicion()
-					setMessage("")
-					setShowAlert(false)
-				}}
-				onCancel={() => {
-					setMessage("")
-					setShowAlert(false)
-					if (alertType == "success")
-						cargarAsistencias()
-				}}
-			/>
-			{!editandoId ? (
-				<DataTable rows={datos} columns={columns} handleEditClick={(id) => iniciarEdicion(datos.find(item => item.id == id))} />
-			) : (
-				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">
-					<div className="p-6 bg-white rounded shadow-md w-full mx-auto">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							<TextField
-								label="Fecha"
-								name="fecha"
-								required
-								type="date"
-								defaultValue={form.fecha}
-								onChange={handleChange}
-							/>
-							<TextField
-								label="Asistentes"
-								name="asistentes"
-								type="number"
-								defaultValue={form.asistentes}
-								onChange={handleChange}
-							/>
-							<TextField
-								label="Notas"
-								name="notas"
-								multiline
-								defaultValue={form.notas}
-								onChange={handleChange}
-							/>
-						</div>
-					</div>
-				</form>
-			)}
+			
+			
+				<DataTableEdit
+					rows={datos}
+					columns={columns}
+					handleSaveClick={handleSaveClick}
+					handleDeleteClick={(id) => {
+						;(async () => {
+							await deleteAsistencia(id)
+							await cargarAsistencias()
+						})()
+					}}
+				/>
+			
 		</div>
 	)
 }

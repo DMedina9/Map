@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import Alert from './../utils/Alert'
 import PropTypes from 'prop-types'
 import ProgressBar from '../utils/ProgressBar'
+import TextField from '@mui/material/TextField'
+import Autocomplete from '@mui/material/Autocomplete'
+import dayjs from 'dayjs'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const fetchInformes = async (anio_servicio, id_publicador) =>
@@ -27,8 +30,7 @@ const S21 = () => {
 	const [publicadores, setPublicadores] = useState([])
 	const [informes, setInformes] = useState([])
 	const [year, setYear] = useState(initialYear)
-	const [nombreInput, setNombreInput] = useState('')
-	const [showOptions, setShowOptions] = useState(false)
+	const [pub, setPub] = useState(null)
 	const [showAlert, setShowAlert] = useState(false)
 	const [alertType, setAlertType] = useState('success')
 	const [message, setMessage] = useState('')
@@ -44,25 +46,24 @@ const S21 = () => {
 			setMessage(message)
 			setShowAlert(true)
 		})
+		// Cargar publicadores desde la base de datos
+		const cargarPublicadores = async () => {
+			const { success, data } = await fetchPublicadores()
+			setPublicadores(success ? data : [])
+		}
 		cargarPublicadores()
 	}, [])
 
 	useEffect(() => {
+		// Cargar informes desde la base de datos
+		const cargarInformes = async () => {
+			if (year && pubId) {
+				const { success, data } = await fetchInformes(year, pubId)
+				setInformes(success ? data : [])
+			} else setInformes([])
+		}
 		cargarInformes()
 	}, [year, pubId])
-
-	// Cargar publicadores desde la base de datos
-	const cargarPublicadores = async () => {
-		const { success, data } = await fetchPublicadores()
-		setPublicadores(success ? data : [])
-	}
-	// Cargar informes desde la base de datos
-	const cargarInformes = async () => {
-		if (year && pubId) {
-			const { success, data } = await fetchInformes(year, pubId)
-			setInformes(success ? data : [])
-		} else setInformes([])
-	}
 
 	return (
 		<div className="max-w-5xl mx-auto bg-white shadow-2xl border border-gray-300 rounded-lg p-8 mt-10">
@@ -83,52 +84,22 @@ const S21 = () => {
 					setShowAlert(false)
 				}}
 			/>
-			{/* Datos personales */}
 			<div className="grid grid-cols-4 gap-4 mb-2">
-				<div className="col-span-4 flex flex-row gap-4 items-center relative">
-					<span className="font-semibold">Nombre:</span>
-					<input
-						type="text"
-						className="border-b border-gray-400 px-2 bg-white focus:outline-none w-100"
-						value={nombreInput}
-						onChange={(e) => {
-							setNombreInput(e.target.value)
-							setShowOptions(true)
-						}}
-						onFocus={() => setShowOptions(true)}
-						placeholder="Buscar publicador..."
-					/>
-					{showOptions && nombreInput.length > 0 && (
-						<ul className="absolute top-10 left-32 bg-white border border-gray-300 rounded shadow-lg z-10 w-64 max-h-60 overflow-y-auto">
-							{publicadores
-								.filter((pub) =>
-									`${pub.nombre} ${pub.apellidos}`
-										.toLowerCase()
-										.includes(nombreInput.toLowerCase())
-								)
-								.map((pub) => (
-									<li
-										key={pub.id}
-										className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-										onMouseDown={() => {
-											setPubId(pub.id)
-											setNombreInput(`${pub.nombre} ${pub.apellidos}`)
-											setShowOptions(false)
-										}}
-									>
-										{pub.nombre} {pub.apellidos}
-									</li>
-								))}
-							{publicadores.filter((pub) =>
-								`${pub.nombre} ${pub.apellidos}`
-									.toLowerCase()
-									.includes(nombreInput.toLowerCase())
-							).length === 0 && (
-								<li className="px-3 py-2 text-gray-400">Sin resultados</li>
-							)}
-						</ul>
+				<Autocomplete
+					className="col-span-4 flex flex-row gap-4 items-center relative"
+					options={publicadores}
+					getOptionLabel={(option) => `${option.nombre} ${option.apellidos}`}
+					id="id_publicador"
+					openOnFocus
+					value={pub}
+					onChange={(e, pub) => {
+						setPub(pub)
+						setPubId(pub.id || null)
+					}}
+					renderInput={(params) => (
+						<TextField {...params} label="Nombre:" variant="standard" />
 					)}
-				</div>
+				/>
 				<DatosPublicador pubId={pubId} publicadores={publicadores} />
 			</div>
 
@@ -243,7 +214,9 @@ function DatosPublicador({ pubId, publicadores }) {
 			<>
 				<div className="col-span-2 flex flex-row gap-2 items-center">
 					<span className="font-semibold">Fecha de nacimiento:</span>
-					<span className="border-b border-gray-400 px-2">{pub.fecha_nacimiento}</span>
+					<span className="border-b border-gray-400 px-2">
+						{pub.fecha_nacimiento && dayjs(pub.fecha_nacimiento).format('DD/MM/YYYY')}
+					</span>
 				</div>
 				<div className="flex flex-row gap-2 items-center">
 					<input
@@ -265,7 +238,9 @@ function DatosPublicador({ pubId, publicadores }) {
 				</div>
 				<div className="col-span-2 flex flex-row gap-2 items-center">
 					<span className="font-semibold">Fecha de bautismo:</span>
-					<span className="border-b border-gray-400 px-2">{pub.fecha_bautismo}</span>
+					<span className="border-b border-gray-400 px-2">
+						{pub.fecha_bautismo && dayjs(pub.fecha_bautismo).format('DD/MM/YYYY')}
+					</span>
 				</div>
 				<div className="flex flex-row gap-2 items-center">
 					<input

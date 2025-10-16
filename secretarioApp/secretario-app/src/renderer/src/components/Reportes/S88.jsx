@@ -1,6 +1,7 @@
 // S88.jsx
 import { useEffect, useState } from 'react'
-import { DataFieldSelect } from './../utils/DataFields'
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 import PropTypes from 'prop-types'
 import Alert from '../utils/Alert'
 
@@ -51,21 +52,21 @@ export default function S88() {
 						setShowAlert(false)
 					}}
 				/>
-				<DataFieldSelect
-					desc="Año de servicio"
+				<TextField
+					label="Año de servicio"
 					name="year"
-					form={{ year }}
-					handleChange={(e) => setYear(Number(e.target.value))}
+					select
+					defaultValue={year}
+					onChange={(e) => setYear(Number(e.target.value))}
 				>
-					<option value="">Seleccione año</option>
 					{[initialYear - 2, initialYear - 1, initialYear, initialYear + 1].map(
 						(year) => (
-							<option key={year} value={year}>
+							<MenuItem key={year} value={year}>
 								{year - 1} - {year}
-							</option>
+							</MenuItem>
 						)
 					)}
-				</DataFieldSelect>
+				</TextField>
 			</div>
 			<div className="flex justify-between mb-4">
 				<div>

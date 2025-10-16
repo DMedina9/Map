@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
-import ButtonBar from './utils/ButtonBar'
-import Alert from './utils/Alert'
-import Loading from './utils/Loading' // Importa el componente Loading
-import ProgressBar from './utils/ProgressBar'
-import DataTable from "./utils/DataTable"
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Checkbox from '@mui/material/Checkbox';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import ButtonBar from '../utils/ButtonBar'
+import Alert from '../utils/Alert'
+import Loading from '../utils/Loading' // Importa el componente Loading
+import ProgressBar from '../utils/ProgressBar'
+import {DataTable} from '../utils/DataTable'
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
+import Checkbox from '@mui/material/Checkbox'
+import FormGroup from '@mui/material/FormGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import dayjs from 'dayjs'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const addPublicador = async (publicador) => await window.api.invoke('add-publicador', publicador)
@@ -21,7 +23,9 @@ const initialForm = {
 	grupo: '',
 	id_tipo_publicador: '',
 	id_privilegio: '',
-	sup_grupo: false
+	sup_grupo: null,
+	fecha_nacimiento: null,
+	fecha_bautismo: null
 }
 
 export default function Publicadores() {
@@ -93,28 +97,29 @@ export default function Publicadores() {
 			sortable: true,
 			flex: 1,
 			minWidth: 350,
-			valueGetter: (value, row) => `${row.nombre || ''} ${row.apellidos || ''}`,
+			valueGetter: (value, row) => `${row.nombre || ''} ${row.apellidos || ''}`
 		},
 		{
 			field: 'grupo',
 			headerName: 'Grupo',
 			type: 'number',
-			width: 150,
+			width: 150
 		}
-	];
+	]
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
 			<Loading loading={loading} />
 			<ButtonBar
 				title="Publicadores"
+				loading={loading}
 				editandoId={editandoId}
 				onSave={() => document.getElementById('frmEditor').requestSubmit()}
 				onCancel={cancelarEdicion}
 				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
 				onDelete={() => {
-					setAlertType("confirm")
-					setMessage("¿Estás seguro de que deseas eliminar este publicador?")
+					setAlertType('confirm')
+					setMessage('¿Estás seguro de que deseas eliminar este publicador?')
 					setShowAlert(true)
 				}}
 				onImport={() => window.api.send('upload-publicadores')}
@@ -128,24 +133,27 @@ export default function Publicadores() {
 					await deletePublicador(editandoId || editandoGridId)
 					await cargarPublicadores()
 					cancelarEdicion()
-					setMessage("")
+					setMessage('')
 					setShowAlert(false)
 				}}
 				onCancel={() => {
-					setMessage("")
+					setMessage('')
 					setShowAlert(false)
-					if (alertType == "success")
-						cargarPublicadores()
+					if (alertType == 'success') cargarPublicadores()
 				}}
 			/>
 			{!editandoId ? (
-				<DataTable rows={datos} columns={columns} handleEditClick={(id) => iniciarEdicion(datos.find(item => item.id == id))}
+				<DataTable
+					rows={datos}
+					columns={columns}
+					handleEditClick={(id) => iniciarEdicion(datos.find((item) => item.id == id))}
 					handleDeleteClick={(id) => {
 						setEditandoGridId(id)
-						setAlertType("confirm")
-						setMessage("¿Estás seguro de que deseas eliminar este publicador?")
+						setAlertType('confirm')
+						setMessage('¿Estás seguro de que deseas eliminar este publicador?')
 						setShowAlert(true)
-					}} />
+					}}
+				/>
 			) : (
 				<form id="frmEditor" onSubmit={handleSubmit} className="mb-6 space-y-4">
 					<div className="p-6 bg-white rounded shadow-md w-full mx-auto">
@@ -175,12 +183,18 @@ export default function Publicadores() {
 								<MenuItem value="H">Masculino</MenuItem>
 								<MenuItem value="M">Femenino</MenuItem>
 							</TextField>
-							<TextField
+							<DatePicker
 								label="Fecha de nacimiento"
 								name="fecha_nacimiento"
-								defaultValue={form.fecha_nacimiento}
-								onChange={handleChange}
-								type="date"
+								defaultValue={dayjs(form.fecha_nacimiento)}
+								onChange={(e) =>
+									handleChange({
+										target: {
+											name: 'fecha_nacimiento',
+											value: dayjs(e.$d).format('YYYY-MM-DD')
+										}
+									})
+								}
 							/>
 							<TextField
 								label="Grupo"
@@ -189,12 +203,18 @@ export default function Publicadores() {
 								onChange={handleChange}
 								type="number"
 							/>
-							<TextField
+							<DatePicker
 								label="Fecha de bautismo"
 								name="fecha_bautismo"
-								defaultValue={form.fecha_bautismo}
-								onChange={handleChange}
-								type="date"
+								defaultValue={dayjs(form.fecha_bautismo)}
+								onChange={(e) =>
+									handleChange({
+										target: {
+											name: 'fecha_bautismo',
+											value: dayjs(e.$d).format('YYYY-MM-DD')
+										}
+									})
+								}
 							/>
 							<TextField
 								name="id_privilegio"
@@ -225,11 +245,16 @@ export default function Publicadores() {
 								<MenuItem value="3">Precursor auxiliar</MenuItem>
 							</TextField>
 							<FormGroup>
-								<FormControlLabel control={<Checkbox
-									name="ungido"
-									defaultChecked={form.ungido}
-									onChange={handleChange}
-								/>} label="Ungido" />
+								<FormControlLabel
+									control={
+										<Checkbox
+											name="ungido"
+											defaultChecked={form.ungido}
+											onChange={handleChange}
+										/>
+									}
+									label="Ungido"
+								/>
 							</FormGroup>
 							<TextField
 								label="Calle"

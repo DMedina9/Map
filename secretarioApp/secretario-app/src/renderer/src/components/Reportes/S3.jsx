@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { DataFieldSelect } from './../utils/DataFields'
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 import PropTypes from 'prop-types'
 const MONTHS = [
 	'Septiembre',
@@ -29,21 +30,21 @@ export default function S3() {
 					<h1 className="text-2xl font-bold mb-4 text-gray-800 col-span-3">
 						Informe de asistencia a las reuniones (S-3)
 					</h1>
-					<DataFieldSelect
-						desc="Año de servicio"
+					<TextField
+						label="Año de servicio"
 						name="year"
-						form={{ year }}
-						handleChange={(e) => setYear(Number(e.target.value))}
+						select
+						defaultValue={year}
+						onChange={(e) => setYear(Number(e.target.value))}
 					>
-						<option value="">Seleccione año</option>
 						{[initialYear - 2, initialYear - 1, initialYear, initialYear + 1].map(
 							(year) => (
-								<option key={year} value={year}>
-									{year}
-								</option>
+								<MenuItem key={year} value={year}>
+									{year - 1} - {year}
+								</MenuItem>
 							)
 						)}
-					</DataFieldSelect>
+					</TextField>
 				</div>
 				<h2 className="text-xl font-bold mb-4 text-gray-800">Reunión de entre semana</h2>
 				<ReportTable year={year} type="ES" />
