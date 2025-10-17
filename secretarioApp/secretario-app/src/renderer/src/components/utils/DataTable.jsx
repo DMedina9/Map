@@ -52,6 +52,7 @@ export function DataTable(props) {
 				initialState={{ pagination: { paginationModel } }}
 				pageSizeOptions={[5, 10, 15, 50, 100]}
 				sx={{ border: 0 }}
+				columns={columns}
 				{...other}
 			/>
 		</Paper>
@@ -60,7 +61,7 @@ export function DataTable(props) {
 
 function EditToolbar({ rowCount, setRows, setRowModesModel }) {
 	const handleClick = () => {
-		const id = -rowCount;
+		const id = -rowCount
 		setRows((oldRows) => [...oldRows, { id, isNew: true }])
 		setRowModesModel((oldModel) => ({
 			...oldModel,
@@ -78,10 +79,11 @@ function EditToolbar({ rowCount, setRows, setRowModesModel }) {
 		</Toolbar>
 	)
 }
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogActions from '@mui/material/DialogActions'
+import Dialog from '@mui/material/Dialog'
 
 /*export interface ConfirmationDialogRawProps {
   id: string;
@@ -92,46 +94,53 @@ import Dialog from '@mui/material/Dialog';
 }
 */
 function ConfirmationDialogRaw(props) {
-  const { onClose, value: valueProp, open, ...other } = props;
-  const [value, setValue] = React.useState(valueProp);
+	const { onClose, value: valueProp, open, ...other } = props
+	const [value, setValue] = React.useState(valueProp)
 
-  React.useEffect(() => {
-    if (!open) {
-      setValue(valueProp);
-    }
-  }, [valueProp, open]);
+	React.useEffect(() => {
+		if (!open) {
+			setValue(valueProp)
+		}
+	}, [valueProp, open])
 
-  const handleCancel = () => {
-    onClose && onClose(null);
-  };
+	const handleCancel = () => {
+		onClose && onClose(null)
+	}
 
-  const handleOk = () => {
-    onClose && onClose(value);
-  };
+	const handleOk = () => {
+		onClose && onClose(value)
+	}
 
-  return (
-    <Dialog
-      sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
-      maxWidth="xs"
-      open={open}
-      {...other}
-    >
-      <DialogTitle>Eliminar registro</DialogTitle>
-      <DialogContent dividers>
-        ¿Estás seguro que deseas eliminar el registro?
-      </DialogContent>
-      <DialogActions>
-        <Button autoFocus onClick={handleCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleOk}>Ok</Button>
-      </DialogActions>
-    </Dialog>
-  );
+	return (
+		<Dialog
+			sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
+			maxWidth="xs"
+			open={open}
+			{...other}
+		>
+			<DialogTitle>Eliminar registro</DialogTitle>
+			<DialogContent dividers>
+				<DialogContentText id="alert-dialog-description">
+					¿Estás seguro que deseas eliminar el registro?
+				</DialogContentText>
+			</DialogContent>
+			<DialogActions>
+				<Button autoFocus onClick={handleCancel}>
+					Cancel
+				</Button>
+				<Button onClick={handleOk}>Ok</Button>
+			</DialogActions>
+		</Dialog>
+	)
 }
 
 export function DataTableEdit(props) {
-  const { columns, handleSaveClick: handleSaveClickProp, handleDeleteClick: handleDeleteClickProp, ...other } = props;
+	const {
+		columns,
+		handleSaveClick: handleSaveClickProp,
+		handleDeleteClick: handleDeleteClickProp,
+		...other
+	} = props
 	if (columns && !columns.find((item) => item.field == 'actions'))
 		columns.push({
 			field: 'actions',
@@ -188,17 +197,17 @@ export function DataTableEdit(props) {
 
 	const [rows, setRows] = React.useState([])
 	const [rowModesModel, setRowModesModel] = React.useState({})
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState(null);
+	const [open, setOpen] = React.useState(false)
+	const [value, setValue] = React.useState(null)
 
-  const handleClose = (id) => {
-    setOpen(false);
+	const handleClose = (id) => {
+		setOpen(false)
 
-    setValue(id);
-    if (id) {
-      handleDeleteClickProp && handleDeleteClickProp(id)
-    }
-  };
+		setValue(id)
+		if (id) {
+			handleDeleteClickProp && handleDeleteClickProp(id)
+		}
+	}
 	const handleRowEditStop = (params, event) => {
 		if (params.reason === GridRowEditStopReasons.rowFocusOut) {
 			event.defaultMuiPrevented = true
@@ -216,7 +225,7 @@ export function DataTableEdit(props) {
 
 	const handleDeleteClick = (id) => () => {
 		setValue(id)
-    setOpen(true);
+		setOpen(true)
 	}
 
 	const handleCancelClick = (id) => () => {
@@ -265,16 +274,16 @@ export function DataTableEdit(props) {
 					toolbar: { rowCount: rows.length, setRows, setRowModesModel }
 				}}
 				showToolbar
-        columns={columns}
+				columns={columns}
 				{...other}
 			/>
-      <ConfirmationDialogRaw
-          id="confirmation-delete-row"
-          keepMounted
-          open={open}
-          onClose={handleClose}
-          value={value}
-        />
+			<ConfirmationDialogRaw
+				id="confirmation-delete-row"
+				keepMounted
+				open={open}
+				onClose={handleClose}
+				value={value}
+			/>
 			<Button onClick={() => console.log(rows)}>Log</Button>
 		</Box>
 	)

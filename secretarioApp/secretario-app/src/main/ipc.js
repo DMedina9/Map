@@ -1,5 +1,5 @@
 import { ipcMain, dialog, shell } from 'electron'
-import { initDb, allAsync } from './database/db.mjs'
+import { initDb, allAsync, runAsync } from './database/db.mjs'
 import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
 import { insertAsistencias, insertInformes, insertPublicadores } from './importExcel.mjs'
 
@@ -138,9 +138,9 @@ export default function initIPC() {
 		try {
 			const db = await initDb()
 			const stmt = await db.prepare(
-				`insert or ignore into Asistencias (fecha, asistentes) values (?, ?)`
+				`insert or ignore into Asistencias (fecha, asistentes, notas) values (?, ?, ?)`
 			)
-			const result = await stmt.run([asistencia.fecha, asistencia.asistentes])
+			const result = await stmt.run([asistencia.fecha, asistencia.asistentes, asistencia.notas])
 			await stmt.finalize()
 			await db.close()
 			return { success: true, lastID: result.lastID }
