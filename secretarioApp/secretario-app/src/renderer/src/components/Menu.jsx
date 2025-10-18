@@ -22,11 +22,13 @@ function MainMenu() {
 	const [anchorEl, setAnchorEl] = useState(null)
 	const [subAnchorEl, setSubAnchorEl] = useState(null)
 	const [subMenuId, setSubMenuId] = useState(null)
+	const [title, setTitle] = useState('Secretario de Congregación')
 	const handleOpenMain = (event) => {
 		setAnchorEl(event.currentTarget)
 	}
 
-	const handleCloseMain = () => {
+	const handleCloseMain = (event) => {
+		setTitle(event.currentTarget.innerText)
 		setAnchorEl(null)
 		setSubAnchorEl(null) // Close sub-menu when main menu closes
 	}
@@ -140,7 +142,7 @@ function MainMenu() {
 						</Menu>
 					</Menu>
 					<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-						Secretario de Congregación
+						{title}
 					</Typography>
 				</Toolbar>
 			</AppBar>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
 	GridRowModes,
 	DataGrid,
@@ -10,19 +11,23 @@ import Paper from '@mui/material/Paper'
 import SaveIcon from '@mui/icons-material/Save'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
-import * as React from 'react'
 import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import AddIcon from '@mui/icons-material/Add'
+import UploadIcon from '@mui/icons-material/UploadFile'
 import CancelIcon from '@mui/icons-material/Close'
 import Button from '@mui/material/Button'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import Dialog from '@mui/material/Dialog'
+import dayjs from 'dayjs'
 
 const paginationModel = { page: 0, pageSize: 15 }
 
 export function DataTable(props) {
 	const { columns, handleEditClick, handleDeleteClick, ...other } = props
-	if (columns && !columns.find((item) => item.field == 'actions'))
-		columns.push({
+	const actionColumn = {
 			field: 'actions',
 			type: 'actions',
 			headerName: 'Acciones',
@@ -31,6 +36,7 @@ export function DataTable(props) {
 			getActions: ({ id }) => {
 				return [
 					<GridActionsCellItem
+						key={0}
 						icon={<EditIcon />}
 						label="Edit"
 						className="textPrimary"
@@ -38,6 +44,7 @@ export function DataTable(props) {
 						color="inherit"
 					/>,
 					<GridActionsCellItem
+						key={1}
 						icon={<DeleteIcon />}
 						label="Delete"
 						onClick={() => handleDeleteClick(id)}
@@ -45,170 +52,95 @@ export function DataTable(props) {
 					/>
 				]
 			}
-		})
+		}
 	return (
 		<Paper sx={{ height: 400, width: '100%' }}>
 			<DataGrid
 				initialState={{ pagination: { paginationModel } }}
 				pageSizeOptions={[5, 10, 15, 50, 100]}
 				sx={{ border: 0 }}
-				columns={columns}
+				columns={[...columns, actionColumn]} // ✅ Agrega acciones al final
 				{...other}
 			/>
 		</Paper>
 	)
 }
 
-function EditToolbar({ rowCount, setRows, setRowModesModel }) {
-	const handleClick = () => {
-		const id = -rowCount
-		setRows((oldRows) => [...oldRows, { id, isNew: true }])
-		setRowModesModel((oldModel) => ({
-			...oldModel,
-			[id]: { mode: GridRowModes.Edit /*, fieldToFocus: 'name'*/ }
-		}))
-	}
-
-	return (
-		<Toolbar>
-			<Tooltip title="Add record">
-				<ToolbarButton onClick={handleClick}>
-					<AddIcon fontSize="small" />
-				</ToolbarButton>
-			</Tooltip>
-		</Toolbar>
-	)
-}
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogActions from '@mui/material/DialogActions'
-import Dialog from '@mui/material/Dialog'
-
-/*export interface ConfirmationDialogRawProps {
-  id: string;
-  keepMounted: boolean;
-  value: string;
-  open: boolean;
-  onClose: (value?: string) => void;
-}
-*/
-function ConfirmationDialogRaw(props) {
-	const { onClose, value: valueProp, open, ...other } = props
-	const [value, setValue] = React.useState(valueProp)
-
-	React.useEffect(() => {
-		if (!open) {
-			setValue(valueProp)
-		}
-	}, [valueProp, open])
-
-	const handleCancel = () => {
-		onClose && onClose(null)
-	}
-
-	const handleOk = () => {
-		onClose && onClose(value)
-	}
+// --- Diálogo de confirmación
+function ConfirmationDialogRaw({ onClose, open }) {
+	const handleCancel = () => onClose(null)
+	const handleOk = () => onClose(true)
 
 	return (
 		<Dialog
 			sx={{ '& .MuiDialog-paper': { width: '80%', maxHeight: 435 } }}
 			maxWidth="xs"
 			open={open}
-			{...other}
 		>
 			<DialogTitle>Eliminar registro</DialogTitle>
-			<DialogContent dividers>
-				<DialogContentText id="alert-dialog-description">
-					¿Estás seguro que deseas eliminar el registro?
-				</DialogContentText>
-			</DialogContent>
+			<DialogContent dividers>¿Estás seguro que deseas eliminar el registro?</DialogContent>
 			<DialogActions>
 				<Button autoFocus onClick={handleCancel}>
-					Cancel
+					Cancelar
 				</Button>
-				<Button onClick={handleOk}>Ok</Button>
+				<Button onClick={handleOk}>Aceptar</Button>
 			</DialogActions>
 		</Dialog>
 	)
 }
 
-export function DataTableEdit(props) {
-	const {
-		columns,
-		handleSaveClick: handleSaveClickProp,
-		handleDeleteClick: handleDeleteClickProp,
-		...other
-	} = props
-	if (columns && !columns.find((item) => item.field == 'actions'))
-		columns.push({
-			field: 'actions',
-			type: 'actions',
-			headerName: 'Actions',
-			width: 100,
-			cellClassName: 'actions',
-			getActions: ({ id }) => {
-				const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit
-
-				if (isInEditMode) {
-					return [
-						<GridActionsCellItem
-							key={0}
-							icon={<SaveIcon />}
-							label="Save"
-							material={{
-								sx: {
-									color: 'primary.main'
-								}
-							}}
-							onClick={handleSaveClick(id)}
-						/>,
-						<GridActionsCellItem
-							key={1}
-							icon={<CancelIcon />}
-							label="Cancel"
-							className="textPrimary"
-							onClick={handleCancelClick(id)}
-							color="inherit"
-						/>
-					]
-				}
-
-				return [
-					<GridActionsCellItem
-						key={2}
-						icon={<EditIcon />}
-						label="Edit"
-						className="textPrimary"
-						onClick={handleEditClick(id)}
-						color="inherit"
-					/>,
-					<GridActionsCellItem
-						key={3}
-						icon={<DeleteIcon />}
-						label="Delete"
-						onClick={handleDeleteClick(id)}
-						color="inherit"
-					/>
-				]
-			}
-		})
-
-	const [rows, setRows] = React.useState([])
-	const [rowModesModel, setRowModesModel] = React.useState({})
-	const [open, setOpen] = React.useState(false)
-	const [value, setValue] = React.useState(null)
-
-	const handleClose = (id) => {
-		setOpen(false)
-
-		setValue(id)
-		if (id) {
-			handleDeleteClickProp && handleDeleteClickProp(id)
-		}
+// --- Toolbar personalizada
+function EditToolbar({ setRows, setRowModesModel, handleImportClick }) {
+	const handleClick = () => {
+		const id = Math.random().toString(36).substr(2, 9)
+		setRows((oldRows) => [
+			...oldRows,
+			{ id, isNew: true, fecha: dayjs().$d, tipo_asistencia: '', asistentes: 0, notas: '' }
+		])
+		setRowModesModel((oldModel) => ({
+			...oldModel,
+			[id]: { mode: GridRowModes.Edit, fieldToFocus: 'fecha' }
+		}))
 	}
+
+	return (
+		<Toolbar>
+			{handleImportClick && (
+				<Tooltip title="Importar registros">
+					<ToolbarButton color="primary" onClick={handleImportClick}>
+						<UploadIcon />
+					</ToolbarButton>
+				</Tooltip>
+			)}
+			<Tooltip title="Agregar registro">
+				<ToolbarButton color="primary" onClick={handleClick}>
+					<AddIcon />
+				</ToolbarButton>
+			</Tooltip>
+		</Toolbar>
+	)
+}
+
+// --- Tabla editable genérica
+export function DataTableEdit({
+	columns,
+	handleSaveClick: handleSaveClickProp,
+	handleDeleteClick: handleDeleteClickProp,
+	handleImportClick,
+	rows: initialRows,
+	loading
+}) {
+	const [rows, setRows] = useState(initialRows)
+	const [rowModesModel, setRowModesModel] = useState({})
+	const [open, setOpen] = useState(false)
+	const [deleteId, setDeleteId] = useState(null)
+
+	useEffect(() => {
+		setRows(initialRows)
+	}, [initialRows])
+
 	const handleRowEditStop = (params, event) => {
+		console.log(params, event)
 		if (params.reason === GridRowEditStopReasons.rowFocusOut) {
 			event.defaultMuiPrevented = true
 		}
@@ -220,11 +152,10 @@ export function DataTableEdit(props) {
 
 	const handleSaveClick = (id) => () => {
 		setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } })
-		handleSaveClickProp && handleSaveClickProp(id)
 	}
 
 	const handleDeleteClick = (id) => () => {
-		setValue(id)
+		setDeleteId(id)
 		setOpen(true)
 	}
 
@@ -233,7 +164,6 @@ export function DataTableEdit(props) {
 			...rowModesModel,
 			[id]: { mode: GridRowModes.View, ignoreModifications: true }
 		})
-
 		const editedRow = rows.find((row) => row.id === id)
 		if (editedRow.isNew) {
 			setRows(rows.filter((row) => row.id !== id))
@@ -243,49 +173,89 @@ export function DataTableEdit(props) {
 	const processRowUpdate = (newRow) => {
 		const updatedRow = { ...newRow, isNew: false }
 		setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)))
+		if (handleSaveClickProp) {
+			const saveData = async () => {
+				const newRows = await handleSaveClickProp(newRow)
+				if (newRows) setRows(newRows)
+			}
+			saveData()
+		}
 		return updatedRow
 	}
 
-	const handleRowModesModelChange = (newRowModesModel) => {
-		setRowModesModel(newRowModesModel)
+	const handleRowModesModelChange = (newModel) => {
+		setRowModesModel(newModel)
+	}
+
+	const actionColumn = {
+		field: 'actions',
+		type: 'actions',
+		headerName: 'Acciones',
+		width: 120,
+		getActions: ({ id }) => {
+			const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit
+			if (isInEditMode) {
+				return [
+					<GridActionsCellItem
+						key="save"
+						icon={<SaveIcon />}
+						label="Guardar"
+						onClick={handleSaveClick(id)}
+						color="primary"
+					/>,
+					<GridActionsCellItem
+						key="cancel"
+						icon={<CancelIcon />}
+						label="Cancelar"
+						onClick={handleCancelClick(id)}
+						color="inherit"
+					/>
+				]
+			}
+			return [
+				<GridActionsCellItem
+					key="edit"
+					icon={<EditIcon />}
+					label="Editar"
+					onClick={handleEditClick(id)}
+					color="inherit"
+				/>,
+				<GridActionsCellItem
+					key="delete"
+					icon={<DeleteIcon />}
+					label="Eliminar"
+					onClick={handleDeleteClick(id)}
+					color="error"
+				/>
+			]
+		}
 	}
 
 	return (
-		<Box
-			sx={{
-				height: 500,
-				width: '100%',
-				'& .actions': {
-					color: 'text.secondary'
-				},
-				'& .textPrimary': {
-					color: 'text.primary'
-				}
-			}}
-		>
+		<Box sx={{ height: 500, width: '100%' }}>
 			<DataGrid
+				rows={rows}
+				columns={[...columns, actionColumn]} // ✅ Agrega acciones al final
+				loading={loading}
 				editMode="row"
 				rowModesModel={rowModesModel}
 				onRowModesModelChange={handleRowModesModelChange}
 				onRowEditStop={handleRowEditStop}
 				processRowUpdate={processRowUpdate}
 				slots={{ toolbar: EditToolbar }}
-				slotProps={{
-					toolbar: { rowCount: rows.length, setRows, setRowModesModel }
-				}}
+				slotProps={{ toolbar: { setRows, setRowModesModel, handleImportClick } }}
+				initialState={{ pagination: { paginationModel } }}
+				pageSizeOptions={[5, 10, 15, 50, 100]}
 				showToolbar
-				columns={columns}
-				{...other}
 			/>
 			<ConfirmationDialogRaw
-				id="confirmation-delete-row"
-				keepMounted
 				open={open}
-				onClose={handleClose}
-				value={value}
+				onClose={(confirm) => {
+					setOpen(false)
+					if (confirm && deleteId)
+						handleDeleteClickProp && handleDeleteClickProp(deleteId)
+				}}
 			/>
-			<Button onClick={() => console.log(rows)}>Log</Button>
 		</Box>
 	)
 }
-
