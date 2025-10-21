@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { createRoot } from 'react-dom/client'
 import ButtonBar from '../utils/ButtonBar'
 import Alert from '../utils/Alert'
 import Loading from '../utils/Loading' // Importa el componente Loading
 import ProgressBar from '../utils/ProgressBar'
-import {DataTable} from '../utils/DataTable'
+import { DataTable } from '../utils/DataTable'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import Checkbox from '@mui/material/Checkbox'
@@ -11,6 +12,10 @@ import FormGroup from '@mui/material/FormGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
+import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
+import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
+import JqxGrid, { jqx } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxgrid'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const fetchInformes = async () => await window.api.invoke('get-informes', ['', '', ''])
@@ -28,7 +33,6 @@ const initialForm = {
 	horas: '',
 	notas: ''
 }
-
 export default function Informes() {
 	// Estado para los datos, filtro, edición y formulario
 	const [datos, setDatos] = useState([])
@@ -100,7 +104,7 @@ export default function Informes() {
 		setForm(initialForm)
 	}
 
-	const columns = [
+	const aColumns = [
 		//  { field: 'id', headerName: 'ID', width: 70 },
 		{
 			field: 'publicador',
@@ -130,9 +134,136 @@ export default function Informes() {
 			width: 150
 		}
 	]
+	const columns = [
+		//	{ text: 'Unit Price', datafield: 'price', width: 90, cellsalign: 'right', cellsformat: 'c2' },
+		{
+			datafield: 'publicador',
+			text: 'Publicador',
+			//sortable: true,
+			//flex: 1,
+			minWidth: 350
+		},
+		{
+			datafield: 'mes',
+			text: 'Mes',
+			//type: 'date',
+			cellsformat: 'dd/MM/yyyy',
+			width: 100,
+			cellsrenderer: (row, datafield, value, defaulthtml, columnproperties, datarow) => {
+				if (value) return dayjs(value).format("YYYY-MM")
+			}
+			//valueGetter: (value) => value?.substring(0, 7)
+		},
+		{
+			datafield: 'predico_en_el_mes',
+			text: 'Predicó',
+			//type: 'bool',
+			columntype: 'checkbox',
+			width: 100
+			//valueGetter: (value, row) => (row.predico_en_el_mes || 0) == 1
+		},
+		{
+			datafield: 'Estatus',
+			text: 'Estatus',
+			width: 150
+		}
+	]
+	const source = {
+		datafields: [
+			{ name: 'publicador', type: 'string' },
+			{ name: 'mes', type: 'date' },
+			{ name: 'predico_en_el_mes', type: 'bool' },
+			//{ name: 'price', type: 'number' },
+			//{ name: 'total', type: 'number' },
+			{ name: 'Estatus', type: 'string' }
+		],
+		datatype: 'local',
+		localdata: datos
+	}
+	const dataAdapter = new jqx.dataAdapter(source)
 
+	const myGrid = useRef(null)
+	const rendertoolbar = useCallback((toolbar) => {
+		const addRowClick = () => {
+			const datarow = { ...initialForm }
+			myGrid.current?.addrow(null, datarow)
+		}
+		const addMultipleRowsClick = () => {
+			myGrid.current?.beginupdate()
+			for (let i = 0; i < 10; i++) {
+				const datarow = { ...initialForm }
+				myGrid.current?.addrow(null, datarow)
+			}
+			myGrid.current?.endupdate()
+		}
+		const deleteRowClick = () => {
+			const selectedrowindex = myGrid.current?.getselectedrowindex()
+			const rowscount = myGrid.current?.getdatainformation().rowscount
+			if (selectedrowindex >= 0 && selectedrowindex < parseFloat(rowscount || 0)) {
+				const id = myGrid.current?.getrowid(selectedrowindex)
+				myGrid.current?.deleterow(id)
+			}
+		}
+		const updateRowClick = () => {
+			const datarow = { ...initialForm }
+			const selectedrowindex = myGrid.current?.getselectedrowindex()
+			const rowscount = myGrid.current?.getdatainformation().rowscount
+			if (selectedrowindex >= 0 && selectedrowindex < parseFloat(rowscount || 0)) {
+				const id = myGrid.current?.getrowid(selectedrowindex)
+				myGrid.current?.updaterow(id, datarow)
+				myGrid.current?.ensurerowvisible(selectedrowindex)
+			}
+		}
+		const root = createRoot(toolbar[0]) // createRoot(container!) if you use TypeScript
+		root.render(
+			<div style={{ margin: '5px' }}>
+				<div id="buttonContainer1" style={{ float: 'left' }}>
+					<JqxButton
+						theme={'material'}
+						onClick={addRowClick}
+						width={105}
+						value={'Add New Row'}
+					/>
+				</div>
+				<div id="buttonContainer2" style={{ float: 'left', marginLeft: '5px' }}>
+					<JqxButton
+						theme={'material'}
+						onClick={addMultipleRowsClick}
+						width={170}
+						value={'Add Multiple New Rows'}
+					/>
+				</div>
+				<div id="buttonContainer3" style={{ float: 'left', marginLeft: '5px' }}>
+					<JqxButton
+						theme={'material'}
+						onClick={deleteRowClick}
+						width={150}
+						value={'Delete Selected Row'}
+					/>
+				</div>
+				<div id="buttonContainer4" style={{ float: 'left', marginLeft: '5px' }}>
+					<JqxButton
+						theme={'material'}
+						onClick={updateRowClick}
+						width={155}
+						value={'Update Selected Row'}
+					/>
+				</div>
+			</div>
+		)
+	}, [])
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			<JqxGrid
+				theme={'material'}
+				ref={myGrid}
+				width={'100%'}
+				height={350}
+				source={dataAdapter}
+				columns={columns}
+				showtoolbar={true}
+				rendertoolbar={rendertoolbar}
+			/>
 			<Loading loading={loading} />
 			<ButtonBar
 				title="Informes"
@@ -169,7 +300,7 @@ export default function Informes() {
 			{!editandoId ? (
 				<DataTable
 					rows={datos}
-					columns={columns}
+					columns={aColumns}
 					handleEditClick={(id) => iniciarEdicion(datos.find((item) => item.id == id))}
 					handleDeleteClick={(id) => {
 						setEditandoGridId(id)
