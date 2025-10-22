@@ -33,6 +33,7 @@ const initialForm = {
 	horas: '',
 	notas: ''
 }
+let root = null
 export default function Informes() {
 	// Estado para los datos, filtro, edición y formulario
 	const [datos, setDatos] = useState([])
@@ -75,17 +76,30 @@ export default function Informes() {
 		setEditandoId(item.id)
 		setForm({ ...item })
 	}
+	const corregirFechas = (informe) => {
+		return {
+			...informe,
+			mes: informe.mes ? dayjs(informe.mes).$d : null,
+			mes_enviado: informe.mes_enviado ? dayjs(informe.mes_enviado).$d : null
+		}
+	}
 	// Cargar informes desde la base de datos
 	const cargarInformes = async (showLoading = true) => {
 		if (showLoading) setLoading(true)
 		const { success, data } = await fetchInformes()
-		setDatos(success ? data : [])
+		setDatos(success ? data.map(corregirFechas) : [])
 		if (showLoading) setLoading(false)
 	}
 	// Cargar publicadores desde la base de datos
 	const cargarPublicadores = async () => {
 		const { success, data } = await fetchPublicadores()
-		setPublicadores(success ? data : [])
+		setPublicadores(
+			success
+				? data.map((pub) => {
+						return { value: pub.id, label: pub.nombre + ' ' + pub.apellidos }
+					})
+				: []
+		)
 	}
 
 	const handleSubmit = async (e) => {
@@ -117,9 +131,9 @@ export default function Informes() {
 		{
 			field: 'mes',
 			headerName: 'Mes',
-			//type: 'date',
-			width: 100,
-			valueGetter: (value) => value?.substring(0, 7)
+			type: 'date',
+			width: 100
+			//valueGetter: (value) => value?.substring(0, 7)
 		},
 		{
 			field: 'predico_en_el_mes',
@@ -134,53 +148,202 @@ export default function Informes() {
 			width: 150
 		}
 	]
-	const columns = [
-		//	{ text: 'Unit Price', datafield: 'price', width: 90, cellsalign: 'right', cellsformat: 'c2' },
-		{
-			datafield: 'publicador',
-			text: 'Publicador',
-			//sortable: true,
-			//flex: 1,
-			minWidth: 350
-		},
-		{
-			datafield: 'mes',
-			text: 'Mes',
-			//type: 'date',
-			cellsformat: 'dd/MM/yyyy',
-			width: 100,
-			cellsrenderer: (row, datafield, value, defaulthtml, columnproperties, datarow) => {
-				if (value) return dayjs(value).format("YYYY-MM")
-			}
-			//valueGetter: (value) => value?.substring(0, 7)
-		},
-		{
-			datafield: 'predico_en_el_mes',
-			text: 'Predicó',
-			//type: 'bool',
-			columntype: 'checkbox',
-			width: 100
-			//valueGetter: (value, row) => (row.predico_en_el_mes || 0) == 1
-		},
-		{
-			datafield: 'Estatus',
-			text: 'Estatus',
-			width: 150
-		}
-	]
-	const source = {
+	const publicadoresSource = useMemo(
+		() => ({
+			datafields: [
+				{ name: 'label', type: 'string' },
+				{ name: 'value', type: 'number' }
+			],
+			datatype: 'array',
+			localdata: publicadores
+		}),
+		[publicadores]
+	)
+	const publicadoresAdapter = useMemo(
+		() => new jqx.dataAdapter(publicadoresSource, { autoBind: true }),
+		[publicadoresSource]
+	)
+	const tipo_publicadores = ['Publicador', 'Precursor regular', 'Precursor auxiliar'].map(
+		(desc, index) => ({
+			value: index + 1,
+			label: desc
+		})
+	)
+	const tipo_publicadoresSource = {
 		datafields: [
-			{ name: 'publicador', type: 'string' },
-			{ name: 'mes', type: 'date' },
-			{ name: 'predico_en_el_mes', type: 'bool' },
-			//{ name: 'price', type: 'number' },
-			//{ name: 'total', type: 'number' },
-			{ name: 'Estatus', type: 'string' }
+			{ name: 'label', type: 'string' },
+			{ name: 'value', type: 'number' }
 		],
-		datatype: 'local',
-		localdata: datos
+		datatype: 'array',
+		localdata: tipo_publicadores
 	}
-	const dataAdapter = new jqx.dataAdapter(source)
+	const tipo_publicadoresAdapter = new jqx.dataAdapter(tipo_publicadoresSource, {
+		autoBind: true
+	})
+	const source = useMemo(
+		() => ({
+			datafields: [
+				{
+					name: 'publicador',
+					value: 'id_publicador',
+					values: { source: publicadoresAdapter.records, value: 'value', name: 'label' }
+				},
+				{ name: 'id_publicador', type: 'number' },
+				{ name: 'mes', type: 'date' },
+				{ name: 'mes_enviado', type: 'date' },
+				{ name: 'predico_en_el_mes', type: 'bool' },
+				{ name: 'cursos_biblicos', type: 'number' },
+				{ name: 'id_tipo_publicador', type: 'number' },
+				{
+					name: 'tipo_publicador',
+					value: 'id_tipo_publicador',
+					values: {
+						source: tipo_publicadoresAdapter.records,
+						value: 'value',
+						name: 'label'
+					}
+				},
+				{ name: 'horas', type: 'number' },
+				{ name: 'notas', type: 'string' },
+				{ name: 'horas_SS', type: 'number' },
+				{ name: 'Estatus', type: 'string' }
+			],
+			datatype: 'local',
+			localdata: datos
+		}),
+		[publicadoresAdapter]
+	)
+	const columns = useMemo(
+		() => [
+			{
+				datafield: 'id_publicador',
+				displayfield: 'publicador',
+				text: 'Publicador',
+				columntype: 'dropdownlist',
+				createeditor: (row, value, editor) => {
+					editor.jqxDropDownList({
+						source: publicadoresAdapter,
+						displayMember: 'label',
+						valueMember: 'value'
+					})
+				},
+				minWidth: 350
+			},
+			{
+				datafield: 'mes',
+				text: 'Mes',
+				cellsformat: 'dd/MM/yyyy',
+				columntype: 'datetimeinput',
+				width: 100
+			},
+			{
+				datafield: 'mes_enviado',
+				text: 'Enviado',
+				cellsformat: 'dd/MM/yyyy',
+				columntype: 'datetimeinput',
+				width: 100
+			},
+			{
+				datafield: 'predico_en_el_mes',
+				text: 'Predicó',
+				columntype: 'checkbox',
+				width: 100
+			},
+			{
+				datafield: 'cursos_biblicos',
+				text: 'Cursos bíblicos',
+				columntype: 'numberinput',
+				cellsalign: 'right',
+				cellsformat: 'n0',
+				createeditor: (row, cellvalue, editor) => {
+					editor.jqxNumberInput({ decimalDigits: 0, digits: 3 })
+				},
+				width: 100
+			},
+			{
+				datafield: 'id_tipo_publicador',
+				displayfield: 'tipo_publicador',
+				text: 'Tipo Publicador',
+				columntype: 'dropdownlist',
+				createeditor: (row, value, editor) => {
+					editor.jqxDropDownList({
+						source: tipo_publicadoresAdapter,
+						displayMember: 'label',
+						valueMember: 'value'
+					})
+				},
+				width: 150
+			},
+			{
+				datafield: 'horas',
+				text: 'Horas',
+				columntype: 'numberinput',
+				cellsalign: 'right',
+				cellsformat: 'n0',
+				createeditor: (row, cellvalue, editor) => {
+					editor.jqxNumberInput({ decimalDigits: 0, digits: 3 })
+				},
+				width: 100
+			},
+			{
+				datafield: 'horas_SS',
+				text: 'Horas Servicio Sagrado',
+				columntype: 'numberinput',
+				cellsalign: 'right',
+				cellsformat: 'n0',
+				createeditor: (row, cellvalue, editor) => {
+					editor.jqxNumberInput({ decimalDigits: 0, digits: 3 })
+				},
+				width: 100
+			},
+			{
+				datafield: 'notas',
+				text: 'Notas',
+				minWidth: 250
+			}
+		],
+		[publicadoresAdapter]
+	)
+	/*const gridSource = useMemo(() => new jqx.dataAdapter(source), [source])
+	const myGridOnCellSelect = useCallback((event) => {
+		if (!myGrid.current || !eventLog.current) return
+		const column = myGrid.current.getcolumn(event.args.datafield)
+		const value = myGrid.current.getcellvalue(event.args.rowindex, column.datafield)
+		const displayValue = myGrid.current.getcellvalue(event.args.rowindex, column.displayfield)
+		eventLog.current.innerHTML =
+			'<div>Selected Cell<br/>Row: ' +
+			event.args.rowindex +
+			', Column: ' +
+			column.text +
+			', Value: ' +
+			value +
+			', Label: ' +
+			displayValue +
+			'</div>'
+	}, [])*/
+	const myGridOnCellEndEdit = useCallback((event) => {
+		if (!myGrid.current) return
+		const column = myGrid.current.getcolumn(event.args.datafield)
+		if (column.displayfield !== column.datafield) {
+			console.log('Cell Edited:', {
+				Index: event.args.rowindex,
+				Column: column.text,
+				Value: event.args.value.value,
+				Label: event.args.value.label,
+				OldValue: event.args.oldvalue.value,
+				OldLabel: event.args.oldvalue.label
+			})
+		} else {
+			console.log('Cell Edited:', {
+				Index: event.args.rowindex,
+				Column: column.text,
+				Value: event.args.value,
+				OldValue: event.args.oldvalue
+			})
+		}
+	}, [])
+
+	const dataAdapter = useMemo(() => new jqx.dataAdapter(source), [source])
 
 	const myGrid = useRef(null)
 	const rendertoolbar = useCallback((toolbar) => {
@@ -214,7 +377,7 @@ export default function Informes() {
 				myGrid.current?.ensurerowvisible(selectedrowindex)
 			}
 		}
-		const root = createRoot(toolbar[0]) // createRoot(container!) if you use TypeScript
+		if (root == null) root = createRoot(toolbar[0]) // createRoot(container!) if you use TypeScript
 		root.render(
 			<div style={{ margin: '5px' }}>
 				<div id="buttonContainer1" style={{ float: 'left' }}>
@@ -263,6 +426,8 @@ export default function Informes() {
 				columns={columns}
 				showtoolbar={true}
 				rendertoolbar={rendertoolbar}
+				onCellendedit={myGridOnCellEndEdit}
+				editable={true}
 			/>
 			<Loading loading={loading} />
 			<ButtonBar
