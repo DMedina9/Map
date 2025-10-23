@@ -1,24 +1,31 @@
-import PropTypes from 'prop-types';
+import React, { useEffect, useRef } from 'react'
+import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
+import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+import JqxProgressBar from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxprogressbar'
 
-const ProgressBar = ({ show, message, progress }) => {
-	if (!message || !show) return null
+export default function ProgressBar({ show = true, message = '', progress = 0 }) {
+	const progressRef = useRef(null)
+
+	useEffect(() => {
+		if (progressRef.current) {
+			progressRef.current.val(progress)
+		}
+	}, [progress])
+
+	if (!show) return null
+
 	return (
-		<>
-			<div className="flex justify-end mt-2 text-sm text-neutral-500">{message}</div>
-			<div className="w-full bg-gray-200 rounded-full h-4">
-				<div
-					className="bg-blue-600 h-4 rounded-full"
-					style={{ width: progress + '%' }}
-				></div>
-			</div>
-		</>
+		<div className="my-4 w-full">
+			<div className="text-sm text-gray-600 mb-2">{message}</div>
+			<JqxProgressBar
+				ref={progressRef}
+				width={'100%'}
+				height={25}
+				theme="material"
+				showText={true}
+				animationDuration={300}
+				value={progress}
+			/>
+		</div>
 	)
 }
-
-ProgressBar.propTypes = {
-    show: PropTypes.bool.isRequired,
-	message: PropTypes.string,
-	progress: PropTypes.number
-};
-
-export default ProgressBar

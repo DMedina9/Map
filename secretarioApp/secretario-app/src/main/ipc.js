@@ -234,31 +234,32 @@ export default function initIPC() {
 	ipcMain.handle('add-informe', async (event, informe) => {
 		try {
 			const db = await initDb()
-			const stmt = await db.prepare(`insert into Informes
-			  (id_publicador,
-				mes,
-				mes_enviado,
-				predico_en_el_mes,
-				cursos_biblicos,
-				id_tipo_publicador,
-				horas,
-				notas,
-				horas_SS)
-			  values (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-			const result = await stmt.run([
-				informe.id_publicador,
-				informe.mes,
-				informe.mes_enviado,
-				informe.predico_en_el_mes,
-				informe.cursos_biblicos,
-				informe.id_tipo_publicador,
-				informe.horas,
-				informe.notas,
-				informe.horas_SS
-			])
-			await stmt.finalize()
+			const id = await runAsync(db,
+				`insert into Informes (
+					id_publicador,
+					mes,
+					mes_enviado,
+					predico_en_el_mes,
+					cursos_biblicos,
+					id_tipo_publicador,
+					horas,
+					notas,
+					horas_SS)
+				values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				[
+					informe.id_publicador,
+					informe.mes,
+					informe.mes_enviado,
+					informe.predico_en_el_mes,
+					informe.cursos_biblicos,
+					informe.id_tipo_publicador,
+					informe.horas,
+					informe.notas,
+					informe.horas_SS
+				])
 			await db.close()
-			return { success: true, lastID: result.lastID }
+			console.log('Inserted informe with ID:', id);
+			return { success: true, id }
 		} catch (error) {
 			console.error('Database insert error:', error)
 			return { success: false, error: error.message }

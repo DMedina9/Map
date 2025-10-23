@@ -1,79 +1,62 @@
-import PropTypes from 'prop-types'
-import {
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	Button,
-	Alert as MuiAlert
-} from '@mui/material'
+import React, { useRef, useEffect } from 'react'
+import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
+import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+import JqxWindow from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxwindow'
+import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 
-const Alert = ({
-	type = 'info', // "info", "success", "warning", "error", "confirm"
-	message,
-	onConfirm,
-	onCancel,
-	show = false
-}) => {
-	if (!show) return null
+export default function Alert({ type = 'info', message, show, onConfirm, onCancel }) {
+	const windowRef = useRef(null)
 
-	const isConfirm = type === 'confirm'
+	useEffect(() => {
+		if (windowRef.current) {
+			if (show) windowRef.current.open()
+			else windowRef.current.close()
+		}
+	}, [show])
+
+	const titleMap = {
+		info: 'Información',
+		success: 'Éxito',
+		warning: 'Advertencia',
+		error: 'Error',
+		confirm: 'Confirmar acción'
+	}
+
+	const colorMap = {
+		info: '#2196f3',
+		success: '#4caf50',
+		warning: '#ff9800',
+		error: '#f44336',
+		confirm: '#673ab7'
+	}
 
 	return (
-		<Dialog
-			open={show}
-			onClose={onCancel}
-			aria-labelledby="alert-dialog-title"
-			aria-describedby="alert-dialog-description"
-			fullWidth
-			maxWidth="xs"
+		<JqxWindow
+			ref={windowRef}
+			width={400}
+			height={200}
+			isModal={true}
+			resizable={false}
+			draggable={false}
+			autoOpen={false}
+			theme="material"
+			title={titleMap[type]}
 		>
-			{/* Título dinámico */}
-			<DialogTitle id="alert-dialog-title">
-				{isConfirm
-					? 'Confirmar acción'
-					: type === 'error'
-						? 'Error'
-						: type === 'success'
-							? 'Éxito'
-							: type === 'warning'
-								? 'Advertencia'
-								: 'Mensaje'}
-			</DialogTitle>
-
-			{/* Cuerpo del mensaje */}
-			<DialogContent>
-				<MuiAlert severity={isConfirm ? 'info' : type} variant="outlined">
+			<div className="flex flex-col justify-between h-full p-4">
+				<p className="text-gray-700 text-center" style={{ color: colorMap[type] }}>
 					{message}
-				</MuiAlert>
-			</DialogContent>
-
-			{/* Botones */}
-			<DialogActions>
-				{isConfirm ? (
-					<>
-						<Button onClick={onCancel} color="inherit" variant="outlined">
-							Cancelar
-						</Button>
-						<Button onClick={onConfirm} color="primary" variant="contained" autoFocus>
-							Confirmar
-						</Button>
-					</>
-				) : (
-					<Button onClick={onCancel} color="primary" variant="contained" autoFocus>
-						Cerrar
-					</Button>
-				)}
-			</DialogActions>
-		</Dialog>
+				</p>
+				<div className="flex justify-center gap-4 mt-4">
+					{type === 'confirm' ? (
+						<>
+							<JqxButton onClick={onConfirm}>Aceptar</JqxButton>
+							<JqxButton onClick={onCancel}>Cancelar</JqxButton>
+						</>
+					) : (
+						<JqxButton onClick={onCancel}>Cerrar</JqxButton>
+					)}
+				</div>
+			</div>
+		</JqxWindow>
 	)
 }
-Alert.propTypes = {
-	type: PropTypes.oneOf(['info', 'success', 'warning', 'error', 'confirm']),
-	message: PropTypes.string.isRequired,
-	onConfirm: PropTypes.func,
-	onCancel: PropTypes.func,
-	show: PropTypes.bool
-}
-
-export default Alert
