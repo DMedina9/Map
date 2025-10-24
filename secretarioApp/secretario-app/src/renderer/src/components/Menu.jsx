@@ -3,7 +3,7 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
 import JqxMenu from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxmenu'
-import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
+import TitleBar from './TitleBar'
 
 import Publicadores from './Catalogos/Publicadores'
 import Informes from './Catalogos/Informes'
@@ -51,6 +51,8 @@ function MainMenu() {
 
 	return (
 		<>
+			<TitleBar title={title} />
+
 			{/* Barra superior */}
 			<div className="shadow-md">
 				<JqxMenu ref={menuRef} theme="material" onItemclick={handleMenuClick}>
@@ -75,11 +77,6 @@ function MainMenu() {
 						</li>
 					</ul>
 				</JqxMenu>
-			</div>
-
-			{/* Título dinámico */}
-			<div className="p-4 bg-blue-100 border-b border-blue-200 text-lg font-semibold text-gray-700">
-				{title}
 			</div>
 
 			{/* Contenido */}

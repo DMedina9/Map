@@ -1,5 +1,4 @@
 import Menu from './components/Menu'
-import TitleBar from './components/TitleBar'
 import { BrowserRouter } from 'react-router-dom'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -13,7 +12,6 @@ function App() {
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es-mx">
 			<BrowserRouter>
-				<TitleBar title="Secretario de Congregación" />
 				<Menu />
 			</BrowserRouter>
 		</LocalizationProvider>

@@ -47,7 +47,7 @@ const getTipoPublicadoresAdapter = () => {
 }
 
 // ====================== Configuración de Grid ======================
-const getSource = (datos, publicadores) => {
+const getSource = (datos, publicadores, myGrid, saveRow) => {
 	const publicadoresAdapter = getPublicadoresAdapter(publicadores)
 	const tipoPublicadoresAdapter = getTipoPublicadoresAdapter()
 
@@ -78,8 +78,17 @@ const getSource = (datos, publicadores) => {
 			{ name: 'notas', type: 'string' },
 			{ name: 'horas_SS', type: 'number' }
 		],
-		datatype: 'local',
-		localdata: datos
+		datatype: 'array',
+		localdata: datos,
+		updaterow: async (rowid, rowdata, commit) => {
+			// that function is called after each edit.
+			var rowindex = myGrid.current?.getrowboundindexbyid(rowid);
+			if (saveRow) await saveRow(rowindex, rowdata);
+			// synchronize with the server - send update command
+			// call commit with parameter true if the synchronization with the server is successful 
+			// and with parameter false if the synchronization failder.
+			commit(true);
+		}
 	}
 
 	const columns = [
@@ -209,7 +218,7 @@ export default function Informes() {
 			const listaPublicadores = ok2
 				? pubs.map((p) => ({ value: p.id, label: `${p.nombre} ${p.apellidos}` }))
 				: []
-			const { dataAdapter, columns } = getSource(informes, listaPublicadores)
+			const { dataAdapter, columns } = getSource(informes, listaPublicadores, myGrid, saveRow)
 			setColumns(columns)
 			setDataAdapter(dataAdapter)
 			setLoading(false)
@@ -239,39 +248,30 @@ export default function Informes() {
 		mes_enviado: informe.mes_enviado ? dayjs(informe.mes_enviado).format('YYYY-MM-DD') : null
 	})
 	// ====================== Eventos ======================
-	const onCellEndEdit = useCallback(async (event) => {
-		const record = myGrid.current.getrowdata(event.args.rowindex)
-		const column = myGrid.current.getcolumn(event.args.datafield)
-		if (!record || !column) return
-
-		// Actualizar el registro con el nuevo valor
-		const updated = { ...record }
-
-		if (column.displayfield !== column.datafield) {
-			updated[column.datafield] = event.args.value.value
-		} else {
-			updated[column.datafield] = event.args.value
-		}
-console.log('Updated Record:', column, updated[column.datafield], updated)
+	const saveRow = async (rowindex, updated) => {
+		if (!updated) return
 
 		// Guardar cambios en la base de datos
-		if (!record.id) {
+		if (!updated.id) {
 			const { success, id } = await addInforme(dataValueFechas(updated))
 			if (success) {
 				updated.id = id
-				const rowID = myGrid.current?.getrowid(event.args.rowindex)
+				const rowID = myGrid.current?.getrowid(rowindex)
 				myGrid.current?.updaterow(rowID, updated)
 			}
 		} else {
-			const { success, error } = await updateInforme(record.id, dataValueFechas(updated))
+			const { success, error } = await updateInforme(updated.id, dataValueFechas(updated))
 			if (!success) {
 				setAlertType('error')
 				setMessage(`Error al actualizar informe: ${error}`)
 				setShowAlert(true)
 			}
 		}
-	}, [])
-	const addRow = () => myGrid.current?.addrow(null, { ...initialForm })
+	}
+	const addRow = () => {
+		myGrid.current?.addrow(null, { ...initialForm })
+		myGrid.current?.ensurerowvisible(dataAdapter.records.length - 1)
+	}
 	const deleteRow = async () => {
 		const index = myGrid.current?.getselectedrowindex()
 		if (index >= 0) {
@@ -329,10 +329,9 @@ console.log('Updated Record:', column, updated[column.datafield], updated)
 				height={500}
 				source={dataAdapter}
 				columns={columns}
-				onCellendedit={onCellEndEdit}
 				editable={true}
-                editmode={'selectedrow'}
-                selectionmode={'singlerow'}
+				editmode="selectedrow"
+				selectionmode={'singlerow'}
 				sortable={true}
 				altrows={true}
 				pageable={true}
