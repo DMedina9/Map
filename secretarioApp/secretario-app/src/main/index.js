@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcRenderer } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import initIPC from './ipc.js'
@@ -13,6 +13,7 @@ function createWindow() {
     autoHideMenuBar: true,
     //...(process.platform === 'linux' ? { icon } : {}),
     icon: join(__dirname, '../../resources/icon.ico'),
+    frame: false, // Oculta la barra de título predeterminada
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -27,7 +28,32 @@ function createWindow() {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+/*  mainWindow.on('minimize', () => {
+    console.log('La ventana ha sido minimizada');
+    // Puedes emitir un evento al proceso de renderizado si lo necesitas
+    mainWindow.webContents.send('window-minimized');
+  });*/
 
+  // Evento 'maximize'
+  mainWindow.on('maximize', () => {
+    //console.log('La ventana ha sido maximizada');
+    //mainWindow.webContents.send('window-maximized');
+    mainWindow.webContents.send('window-state-changed', 'maximized');
+  });
+
+  // Evento 'unmaximize' (se emite cuando la ventana deja de estar maximizada)
+  mainWindow.on('unmaximize', () => {
+    //console.log('La ventana ha sido restaurada (desmaximizada)');
+    //mainWindow.webContents.send('window-restored');
+    mainWindow.webContents.send('window-state-changed', 'normal');
+  });
+
+  // Evento 'restore' (se emite cuando una ventana minimizada es restaurada)
+  mainWindow.on('restore', () => {
+    //console.log('La ventana ha sido restaurada desde la barra de tareas');
+    //mainWindow.webContents.send('window-restored');
+    mainWindow.webContents.send('window-state-changed', 'normal');
+  });
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

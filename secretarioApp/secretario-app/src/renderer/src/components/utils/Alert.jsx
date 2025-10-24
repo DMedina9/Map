@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
 import JqxWindow from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxwindow'
-import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
+import ButtonBar from './ButtonBar'
 
 export default function Alert({ type = 'info', message, show, onConfirm, onCancel }) {
 	const windowRef = useRef(null)
@@ -33,28 +33,24 @@ export default function Alert({ type = 'info', message, show, onConfirm, onCance
 	return (
 		<JqxWindow
 			ref={windowRef}
-			width={400}
-			height={200}
+			theme="material"
+			minWidth={400}
+			minHeight={120}
 			isModal={true}
 			resizable={false}
 			draggable={false}
 			autoOpen={false}
-			theme="material"
 			title={titleMap[type]}
 		>
 			<div className="flex flex-col justify-between h-full p-4">
-				<p className="text-gray-700 text-center" style={{ color: colorMap[type] }}>
+				<p
+					className="text-gray-700 text-center"
+					style={{ color: colorMap[type], height: '60px' }}
+				>
 					{message}
 				</p>
-				<div className="flex justify-center gap-4 mt-4">
-					{type === 'confirm' ? (
-						<>
-							<JqxButton onClick={onConfirm}>Aceptar</JqxButton>
-							<JqxButton onClick={onCancel}>Cancelar</JqxButton>
-						</>
-					) : (
-						<JqxButton onClick={onCancel}>Cerrar</JqxButton>
-					)}
+				<div className="mt-auto flex justify-center">
+					<ButtonBar type={type} onConfirm={onConfirm} onCancel={onCancel} />
 				</div>
 			</div>
 		</JqxWindow>

@@ -1,24 +1,25 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ButtonBar from '../utils/ButtonBar'
 import Alert from '../utils/Alert'
 import Loading from '../utils/Loading'
 import ProgressBar from '../utils/ProgressBar'
 import dayjs from 'dayjs'
 
-// Importar jqWidgets
+// Estilos jqWidgets
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+
+// Componentes jqWidgets
 import JqxInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxinput'
 import JqxDropDownList from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdropdownlist'
 import JqxDateTimeInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdatetimeinput'
 import JqxCheckBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcheckbox'
 import JqxGrid from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxgrid'
 import JqxWindow from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxwindow'
-import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import JqxNumberInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxnumberinput'
 import JqxMaskedInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxmaskedinput'
 
-// Funciones para interactuar con el backend
+// Backend API (Electron preload)
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const addPublicador = async (publicador) => await window.api.invoke('add-publicador', publicador)
 const updatePublicador = async (id, publicador) =>
@@ -28,48 +29,57 @@ const deletePublicador = async (id) => await window.api.invoke('delete-publicado
 const initialForm = {
 	nombre: '',
 	apellidos: '',
+	sexo: null,
+	ungido: false,
+	fecha_nacimiento: null,
+	fecha_bautismo: null,
 	grupo: '',
 	id_tipo_publicador: '',
 	id_privilegio: '',
 	sup_grupo: null,
-	fecha_nacimiento: null,
-	fecha_bautismo: null,
-	sexo: '',
-	ungido: false
+	calle: '',
+	num: '',
+	colonia: '',
+	telefono_fijo: '',
+	telefono_movil: '',
+	contacto_emergencia: '',
+	tel_contacto_emergencia: '',
+	correo_contacto_emergencia: ''
 }
 
 export default function Publicadores() {
 	const [datos, setDatos] = useState([])
-	const [editandoId, setEditandoId] = useState(null)
-	const [editandoGridId, setEditandoGridId] = useState(null)
-	const [form, setForm] = useState(initialForm)
-	const [showAlert, setShowAlert] = useState(false)
 	const [loading, setLoading] = useState(true)
-	const [alertType, setAlertType] = useState('confirm')
-	const [message, setMessage] = useState('')
 	const [progress, setProgress] = useState(0)
-	const nombre = useRef(null)
-	const apellidos = useRef(null)
-	const sexo = useRef(null)
-	const ungido = useRef(null)
-	const fecha_nacimiento = useRef(null)
-	const fecha_bautismo = useRef(null)
-	const grupo = useRef(null)
-	const id_tipo_publicador = useRef(null)
-	const id_privilegio = useRef(null)
-	const sup_grupo = useRef(null)
-	const calle = useRef(null)
-	const num = useRef(null)
-	const colonia = useRef(null)
-	const telefono_fijo = useRef(null)
-	const telefono_movil = useRef(null)
-	const contacto_emergencia = useRef(null)
-	const tel_contacto_emergencia = useRef(null)
-	const correo_contacto_emergencia = useRef(null)
-
+	const [message, setMessage] = useState('')
+	const [alertType, setAlertType] = useState('info')
+	const [showAlert, setShowAlert] = useState(false)
 	const editrow = useRef(-1)
 	const gridRef = useRef(null)
 	const myWindow = useRef(null)
+
+	// Refs de formulario
+	const refs = {
+		nombre: useRef(null),
+		apellidos: useRef(null),
+		sexo: useRef(null),
+		ungido: useRef(null),
+		fecha_nacimiento: useRef(null),
+		fecha_bautismo: useRef(null),
+		grupo: useRef(null),
+		id_tipo_publicador: useRef(null),
+		id_privilegio: useRef(null),
+		sup_grupo: useRef(null),
+		calle: useRef(null),
+		num: useRef(null),
+		colonia: useRef(null),
+		telefono_fijo: useRef(null),
+		telefono_movil: useRef(null),
+		contacto_emergencia: useRef(null),
+		tel_contacto_emergencia: useRef(null),
+		correo_contacto_emergencia: useRef(null)
+	}
+
 	useEffect(() => {
 		cargarPublicadores()
 		window.api.receive('upload-publicadores-message', ({ progress, message }) => {
@@ -90,153 +100,109 @@ export default function Publicadores() {
 		setLoading(false)
 	}
 
-	const handleChange = (name, value) => {
-		setForm({ ...form, [name]: value })
-	}
+	const dataAdapter = useMemo(() => {
+		return new window.jqx.dataAdapter({
+			localdata: datos,
+			datatype: 'array'
+		})
+	}, [datos])
 
-	const iniciarEdicion = (item) => {
-		setEditandoId(item.id)
-		setForm({ ...item })
-	}
+	const iniciarEdicion = (rowIndex) => {
+		editrow.current = rowIndex
+		const record = rowIndex < 0 ? { ...initialForm } : gridRef.current.getrowdata(rowIndex)
 
-	const cancelarEdicion = () => {
-		setEditandoId(null)
-		setForm(initialForm)
-	}
-
-	const handleSubmit = async (e) => {
-		e.preventDefault()
-		if (editandoId > 0) await updatePublicador(editandoId, form)
-		else await addPublicador(form)
-
-		await cargarPublicadores()
-		cancelarEdicion()
-	}
-	const saveBtn = useCallback(async () => {
-		console.log('Guardando...', {nombre: nombre.current?.getOptions('value'),
-			apellidos: apellidos.current?.getOptions('value'),
-			sexo: sexo.current?.getOptions('value'),
-			ungido: ungido.current?.getOptions('value') ? 1 : 0,
-			fecha_nacimiento: dayjs(fecha_nacimiento.current?.val()).format('YYYY-MM-DD'),
-			fecha_bautismo: dayjs(fecha_bautismo.current?.val()).format('YYYY-MM-DD'),
-			grupo: grupo.current?.val(),
-			id_tipo_publicador: id_tipo_publicador.current?.val(),
-			id_privilegio: id_privilegio.current?.val(),
-			sup_grupo: sup_grupo.current?.val(),
-			calle: calle.current?.val(),
-			num: num.current?.val(),
-			colonia: colonia.current?.val(),
-			telefono_fijo: telefono_fijo.current?.val(),
-			telefono_movil: telefono_movil.current?.val(),
-			contacto_emergencia: contacto_emergencia.current?.val(),
-			tel_contacto_emergencia: tel_contacto_emergencia.current?.val(),
-			correo_contacto_emergencia: correo_contacto_emergencia.current?.val()})
-		const row = {
-			nombre: nombre.current?.getOptions('value'),
-			apellidos: apellidos.current?.getOptions('value'),
-			sexo: sexo.current?.getOptions('value'),
-			ungido: ungido.current?.getOptions('value') ? 1 : 0,
-			fecha_nacimiento: dayjs(fecha_nacimiento.current?.val()).format('YYYY-MM-DD'),
-			fecha_bautismo: dayjs(fecha_bautismo.current?.val()).format('YYYY-MM-DD'),
-			grupo: grupo.current?.val(),
-			id_tipo_publicador: id_tipo_publicador.current?.val(),
-			id_privilegio: id_privilegio.current?.val(),
-			sup_grupo: sup_grupo.current?.val(),
-			calle: calle.current?.val(),
-			num: num.current?.val(),
-			colonia: colonia.current?.val(),
-			telefono_fijo: telefono_fijo.current?.val(),
-			telefono_movil: telefono_movil.current?.val(),
-			contacto_emergencia: contacto_emergencia.current?.val(),
-			tel_contacto_emergencia: tel_contacto_emergencia.current?.val(),
-			correo_contacto_emergencia: correo_contacto_emergencia.current?.val()
+		for (const key in refs) {
+			if (refs[key].current) {
+				if (refs[key].current.val) refs[key].current.val(record[key] || '')
+				if (refs[key].current.setDate && record[key]) refs[key].current.setDate(record[key])
+			}
 		}
+		myWindow.current.open()
+	}
+
+	const saveBtn = useCallback(async () => {
+		const row = {}
+		for (const key in refs) {
+			if (refs[key].current && refs[key].current.val) row[key] = refs[key].current.val()
+		}
+		row.ungido = refs.ungido.current?.val() ? 1 : 0
+		row.fecha_nacimiento = dayjs(refs.fecha_nacimiento.current?.val(), 'DD/MM/YYYY').format(
+			'YYYY-MM-DD'
+		)
+		row.fecha_bautismo = dayjs(refs.fecha_bautismo.current?.val(), 'DD/MM/YYYY').format(
+			'YYYY-MM-DD'
+		)
+
 		if (editrow.current >= 0) {
-			const id = gridRef.current?.getrowdata(editrow.current).id
+			const id = gridRef.current.getrowdata(editrow.current).id
 			await updatePublicador(id, row)
-			const rowID = gridRef.current?.getrowid(editrow.current)
-			gridRef.current?.updaterow(rowID, row)
+			gridRef.current.updaterow(id, row)
 		} else {
 			await addPublicador(row)
 			await cargarPublicadores()
 		}
-		myWindow.current?.hide()
-	}, [])
-	const cancelBtn = useCallback(() => {
-		myWindow.current?.hide()
-	}, [])
+		myWindow.current.hide()
+	}, [refs])
+
+	const cancelBtn = () => myWindow.current.hide()
+
+	const confirmDelete = () => {
+		const index = gridRef.current.getselectedrowindex()
+		if (index >= 0) {
+			setAlertType('confirm')
+			setMessage('¿Deseas eliminar este publicador?')
+			setShowAlert(true)
+		} else {
+			setAlertType('info')
+			setMessage('Seleccione una fila para eliminar.')
+			setShowAlert(true)
+		}
+	}
+
+	const deleteRow = async () => {
+		const index = gridRef.current.getselectedrowindex()
+		if (index >= 0) {
+			const id = gridRef.current.getrowdata(index).id
+			await deletePublicador(id)
+			gridRef.current.deleterow(index)
+			setAlertType('success')
+			setMessage('Registro eliminado correctamente')
+			setShowAlert(true)
+		}
+	}
+
 	const columns = [
+		{ text: 'Grupo', datafield: 'grupo', width: 80 },
 		{ text: 'Nombre', datafield: 'nombre' },
-		{ text: 'Grupo', datafield: 'grupo' },
-		{ text: 'Sexo', datafield: 'sexo' },
+		{ text: 'Apellidos', datafield: 'apellidos' },
+		{ text: 'Tipo publicador', datafield: 'tipo_publicador' },
+		{ text: 'Privilegio', datafield: 'privilegio' },
 		{
-			buttonclick: (row) => {
-				editrow.current = row
-				const dataRecord = gridRef.current?.getrowdata(editrow.current)
-				nombre.current?.val(dataRecord.nombre)
-				apellidos.current?.val(dataRecord.apellidos)
-				sexo.current?.val(dataRecord.sexo)
-				ungido.current?.val(dataRecord.ungido === 1)
-				fecha_nacimiento.current?.setDate(dataRecord.fecha_nacimiento)
-				fecha_bautismo.current?.setDate(dataRecord.fecha_bautismo)
-				grupo.current?.val(dataRecord.grupo)
-				id_tipo_publicador.current?.val(dataRecord.id_tipo_publicador)
-				id_privilegio.current?.val(dataRecord.id_privilegio)
-				sup_grupo.current?.val(dataRecord.sup_grupo)
-				calle.current?.val(dataRecord.calle)
-				num.current?.val(dataRecord.num)
-				colonia.current?.val(dataRecord.colonia)
-				telefono_fijo.current?.val(dataRecord.telefono_fijo)
-				telefono_movil.current?.val(dataRecord.telefono_movil)
-				contacto_emergencia.current?.val(dataRecord.contacto_emergencia)
-				tel_contacto_emergencia.current?.val(dataRecord.tel_contacto_emergencia)
-				correo_contacto_emergencia.current?.val(dataRecord.correo_contacto_emergencia)
-				myWindow.current?.open()
-			},
-			cellsrenderer: () => {
-				return 'Editar'
-			},
-			columntype: 'button',
-			datafield: 'Edit',
 			text: 'Editar',
-			width: 70
+			datafield: 'Edit',
+			columntype: 'button',
+			width: 80,
+			cellsrenderer: () => 'Editar',
+			buttonclick: (rowIndex) => iniciarEdicion(rowIndex)
 		}
 	]
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
-			<Loading loading={loading} />
 			<ButtonBar
-				title="Publicadores"
-				loading={loading}
-				editandoId={editandoId}
-				onSave={() => document.getElementById('frmEditor').requestSubmit()}
-				onCancel={cancelarEdicion}
-				onAdd={() => iniciarEdicion({ ...initialForm, id: -1 })}
-				onDelete={() => {
-					setAlertType('confirm')
-					setMessage('¿Estás seguro de que deseas eliminar este publicador?')
-					setShowAlert(true)
-				}}
+				onAdd={() => iniciarEdicion(-1)}
+				onDelete={confirmDelete}
 				onImport={() => window.api.send('upload-publicadores')}
 			/>
 
-			<ProgressBar show={!showAlert} message={message} progress={progress} />
 			<Alert
 				type={alertType}
 				message={message}
 				show={showAlert}
-				onConfirm={async () => {
-					await deletePublicador(editandoId || editandoGridId)
-					await cargarPublicadores()
-					cancelarEdicion()
-					setMessage('')
-					setShowAlert(false)
-				}}
+				onConfirm={deleteRow}
 				onCancel={() => {
 					setMessage('')
 					setShowAlert(false)
-					if (alertType === 'success') cargarPublicadores()
 				}}
 			/>
 
@@ -245,39 +211,36 @@ export default function Publicadores() {
 				theme="material"
 				width="100%"
 				height={500}
-				autoheight={true}
+				source={dataAdapter}
 				columns={columns}
-				source={new window.jqx.dataAdapter({ localdata: datos, datatype: 'array' })}
 				pageable={true}
 				sortable={true}
-				onRowdoubleclick={(e) => iniciarEdicion(e.args.row.bounddata)}
 				altrows={true}
 				pagesize={10}
 				pagesizeoptions={[10, 20, 50, 100]}
-				loadingindicator={loading}
+				onRowdoubleclick={(e) => iniciarEdicion(e.args.rowindex)}
 			/>
+
+			<ProgressBar show={!showAlert} message={message} progress={progress} />
+
 			<JqxWindow
-				theme="material"
 				ref={myWindow}
+				theme="material"
 				width="75%"
-				height={450}
+				height={480}
 				resizable={false}
-				isModal={false}
 				autoOpen={false}
-				modalOpacity={'0.01'}
 			>
-				<div>Editar</div>
-				<div style={{ overflow: 'hidden' }}>
+				<div>Editar Publicador</div>
+				<div className="flex flex-col justify-between h-full p-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
 						<label>Nombre:</label>
-						<JqxInput ref={nombre} theme="material" width="100%" />
-
+						<JqxInput ref={refs.nombre} theme="material" width="100%" />
 						<label>Apellidos:</label>
-						<JqxInput ref={apellidos} theme="material" width="100%" />
-
+						<JqxInput ref={refs.apellidos} theme="material" width="100%" />
 						<label>Sexo:</label>
 						<JqxDropDownList
-							ref={sexo}
+							ref={refs.sexo}
 							theme="material"
 							width="100%"
 							source={[
@@ -285,27 +248,25 @@ export default function Publicadores() {
 								{ value: 'M', label: 'Femenino' }
 							]}
 						/>
-
-						<label>Fecha de nacimiento:</label>
-						<JqxDateTimeInput ref={fecha_nacimiento} theme="material" width="100%" />
-
+						<label>Fecha nacimiento:</label>
+						<JqxDateTimeInput
+							ref={refs.fecha_nacimiento}
+							theme="material"
+							width="100%"
+						/>
 						<label>Grupo:</label>
 						<JqxNumberInput
-							ref={grupo}
+							ref={refs.grupo}
 							theme="material"
 							width="100%"
 							digits={1}
 							decimalDigits={0}
-							inputMode="simple"
-							spinButtons={true}
 						/>
-
-						<label>Fecha de bautismo:</label>
-						<JqxDateTimeInput ref={fecha_bautismo} theme="material" width="100%" />
-
+						<label>Fecha bautismo:</label>
+						<JqxDateTimeInput ref={refs.fecha_bautismo} theme="material" width="100%" />
 						<label>Privilegio:</label>
 						<JqxDropDownList
-							ref={id_privilegio}
+							ref={refs.id_privilegio}
 							theme="material"
 							width="100%"
 							source={[
@@ -313,10 +274,9 @@ export default function Publicadores() {
 								{ value: 2, label: 'Siervo ministerial' }
 							]}
 						/>
-
 						<label>Tipo publicador:</label>
 						<JqxDropDownList
-							ref={id_tipo_publicador}
+							ref={refs.id_tipo_publicador}
 							theme="material"
 							width="100%"
 							source={[
@@ -325,47 +285,46 @@ export default function Publicadores() {
 								{ value: 3, label: 'Precursor auxiliar' }
 							]}
 						/>
-
 						<label>Ungido:</label>
-						<JqxCheckBox ref={ungido} theme="material"></JqxCheckBox>
-
+						<JqxCheckBox ref={refs.ungido} theme="material" />
 						<label>Calle:</label>
-						<JqxInput ref={calle} theme="material" width="100%" />
-
+						<JqxInput ref={refs.calle} theme="material" width="100%" />
 						<label>Número:</label>
-						<JqxInput ref={num} theme="material" width="100%" />
-
+						<JqxInput ref={refs.num} theme="material" width="100%" />
 						<label>Colonia:</label>
-						<JqxInput ref={colonia} theme="material" width="100%" />
-
+						<JqxInput ref={refs.colonia} theme="material" width="100%" />
 						<label>Teléfono fijo:</label>
 						<JqxMaskedInput
-							ref={telefono_fijo}
+							ref={refs.telefono_fijo}
 							theme="material"
 							mask="(##) #### ####"
 							width="100%"
 						/>
 						<label>Teléfono móvil:</label>
 						<JqxMaskedInput
-							ref={telefono_movil}
+							ref={refs.telefono_movil}
 							theme="material"
 							mask="(##) #### ####"
 							width="100%"
 						/>
-						<label>Contacto de emergencia:</label>
-						<JqxInput ref={contacto_emergencia} theme="material" width="100%" />
-						<label>Teléfono de contacto de emergencia:</label>
+						<label>Contacto emergencia:</label>
+						<JqxInput ref={refs.contacto_emergencia} theme="material" width="100%" />
+						<label>Teléfono contacto emergencia:</label>
 						<JqxMaskedInput
-							ref={tel_contacto_emergencia}
+							ref={refs.tel_contacto_emergencia}
 							theme="material"
 							mask="(##) #### ####"
 							width="100%"
 						/>
-						<label>Correo de contacto de emergencia:</label>
-						<JqxInput ref={correo_contacto_emergencia} theme="material" width="100%" />
-						<label>Superintendente de grupo:</label>
+						<label>Correo contacto emergencia:</label>
+						<JqxInput
+							ref={refs.correo_contacto_emergencia}
+							theme="material"
+							width="100%"
+						/>
+						<label>Superintendente grupo:</label>
 						<JqxDropDownList
-							ref={sup_grupo}
+							ref={refs.sup_grupo}
 							theme="material"
 							width="100%"
 							source={[
@@ -374,23 +333,9 @@ export default function Publicadores() {
 							]}
 						/>
 					</div>
-					<div>
-						<JqxButton
-							theme={'material'}
-							style={{ display: 'inline-block', marginRight: '5px' }}
-							onClick={saveBtn}
-							width={50}
-						>
-							Save
-						</JqxButton>
-						<JqxButton
-							theme={'material'}
-							style={{ display: 'inline-block', marginRight: '5px' }}
-							onClick={cancelBtn}
-							width={50}
-						>
-							Cancel
-						</JqxButton>
+
+					<div className="mt-auto flex justify-center gap-2">
+						<ButtonBar editandoId={true} onSave={saveBtn} onCancel={cancelBtn} />
 					</div>
 				</div>
 			</JqxWindow>

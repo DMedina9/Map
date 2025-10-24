@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react'
+import PropTypes from 'prop-types'
+import { useEffect, useRef } from 'react'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
 import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
 import JqxProgressBar from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxprogressbar'
 
-export default function ProgressBar({ show = true, message = '', progress = 0 }) {
+export default function ProgressBar({ show, message, progress }) {
 	const progressRef = useRef(null)
 
 	useEffect(() => {
@@ -12,10 +13,8 @@ export default function ProgressBar({ show = true, message = '', progress = 0 })
 		}
 	}, [progress])
 
-	if (!show) return null
-
 	return (
-		<div className="my-4 w-full">
+		<div className="my-4 w-full" style={{ display: !message || !show ? 'none' : 'block' }}>
 			<div className="text-sm text-gray-600 mb-2">{message}</div>
 			<JqxProgressBar
 				ref={progressRef}
@@ -28,4 +27,14 @@ export default function ProgressBar({ show = true, message = '', progress = 0 })
 			/>
 		</div>
 	)
+}
+ProgressBar.propTypes = {
+	show: PropTypes.bool.isRequired,
+	message: PropTypes.string,
+	progress: PropTypes.number
+}
+ProgressBar.defaultProps = {
+	show: false,
+	message: '',
+	progress: 0
 }

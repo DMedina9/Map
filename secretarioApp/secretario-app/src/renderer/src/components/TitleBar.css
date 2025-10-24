@@ -1,0 +1,38 @@
+.titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 36px;
+  background-color: ##1ca8dd;
+  color: #fff;
+  font-family: sans-serif;
+  -webkit-app-region: drag; /* Habilita el arrastre de la ventana */
+}
+
+.titlebar-draggable {
+  flex-grow: 1;
+  padding-left: 10px;
+  -webkit-app-region: drag;
+}
+
+.titlebar-buttons {
+  display: flex;
+  -webkit-app-region: no-drag; /* Desactiva el arrastre en los botones */
+}
+
+.titlebar-buttons button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-buttons button:hover {
+  background-color: #555;
+}
+.titlebar-buttons button:active {
+  background-color: #777;
+}

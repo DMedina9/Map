@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createRoot } from 'react-dom/client'
+import ButtonBar from '../utils/ButtonBar'
 import Alert from '../utils/Alert'
 import ProgressBar from '../utils/ProgressBar'
 import dayjs from 'dayjs'
@@ -186,8 +187,6 @@ const initialForm = {
 	notas: ''
 }
 
-let root = null
-
 export default function Informes() {
 	const [columns, setColumns] = useState([])
 	const [dataAdapter, setDataAdapter] = useState(null)
@@ -243,6 +242,9 @@ export default function Informes() {
 	const onCellEndEdit = useCallback(async (event) => {
 		const record = myGrid.current.getrowdata(event.args.rowindex)
 		const column = myGrid.current.getcolumn(event.args.datafield)
+		if (!record || !column) return
+
+		// Actualizar el registro con el nuevo valor
 		const updated = { ...record }
 
 		if (column.displayfield !== column.datafield) {
@@ -250,7 +252,9 @@ export default function Informes() {
 		} else {
 			updated[column.datafield] = event.args.value
 		}
+console.log('Updated Record:', column, updated[column.datafield], updated)
 
+		// Guardar cambios en la base de datos
 		if (!record.id) {
 			const { success, id } = await addInforme(dataValueFechas(updated))
 			if (success) {
@@ -267,69 +271,32 @@ export default function Informes() {
 			}
 		}
 	}, [])
-	const renderToolbar = useCallback(
-		(toolbar) => {
-			const addRow = () => myGrid.current?.addrow(null, { ...initialForm })
-			const deleteRow = async () => {
-				const index = myGrid.current?.getselectedrowindex()
-				if (index >= 0) {
-					//const id = myGrid.current?.getrowid(index)
-					setShowAlert(false)
-					setMessage('')
-					await deleteInforme(myGrid.current.getrowdata(index).id)
-					myGrid.current?.deleterow(index)
-					setAlertType('success')
-					setMessage('Fila eliminada correctamente')
-					setShowAlert(true)
-				}
-			}
-			const confirmDelete = () => {
-				const index = myGrid.current?.getselectedrowindex()
-				if (index >= 0) {
-					setAlertType('confirm')
-					setMessage('¿Eliminar fila seleccionada?')
-					setShowAlert(true)
-				} else {
-					setAlertType('info')
-					setMessage('Seleccione una fila para eliminar')
-					setShowAlert(true)
-				}
-			}
-
-			if (!root) root = createRoot(toolbar[0])
-			root.render(
-				<div
-					style={{ margin: '5px', display: 'flex', flexFlow: 'row-reverse', gap: '8px' }}
-				>
-					<Alert
-						type={alertType}
-						message={message}
-						show={showAlert}
-						onConfirm={deleteRow}
-						onCancel={() => {
-							setShowAlert(false)
-							setMessage('')
-							if (alertType === 'success') window.location.reload()
-						}}
-					/>
-					<JqxButton
-						theme="material"
-						onClick={confirmDelete}
-						width={100}
-						value="Eliminar"
-					/>
-					<JqxButton theme="material" onClick={addRow} width={100} value="Agregar" />
-					<JqxButton
-						theme="material"
-						onClick={() => window.api.send('upload-informes')}
-						width={100}
-						value="Importar"
-					/>
-				</div>
-			)
-		},
-		[alertType, message, showAlert]
-	)
+	const addRow = () => myGrid.current?.addrow(null, { ...initialForm })
+	const deleteRow = async () => {
+		const index = myGrid.current?.getselectedrowindex()
+		if (index >= 0) {
+			//const id = myGrid.current?.getrowid(index)
+			setShowAlert(false)
+			setMessage('')
+			await deleteInforme(myGrid.current.getrowdata(index).id)
+			myGrid.current?.deleterow(index)
+			setAlertType('success')
+			setMessage('Fila eliminada correctamente')
+			setShowAlert(true)
+		}
+	}
+	const confirmDelete = () => {
+		const index = myGrid.current?.getselectedrowindex()
+		if (index >= 0) {
+			setAlertType('confirm')
+			setMessage('¿Eliminar fila seleccionada?')
+			setShowAlert(true)
+		} else {
+			setAlertType('info')
+			setMessage('Seleccione una fila para eliminar')
+			setShowAlert(true)
+		}
+	}
 
 	// ====================== Render ======================
 	//if (loading || !dataAdapter || !columns.length)
@@ -337,6 +304,24 @@ export default function Informes() {
 
 	return (
 		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+			<Alert
+				type={alertType}
+				message={message}
+				show={showAlert}
+				onConfirm={deleteRow}
+				onCancel={() => {
+					setShowAlert(false)
+					setMessage('')
+					if (alertType === 'success') window.location.reload()
+				}}
+			/>
+			<ButtonBar
+				loading={loading}
+				onAdd={addRow}
+				onDelete={confirmDelete}
+				onImport={() => window.api.send('upload-informes')}
+			/>
+
 			<JqxGrid
 				ref={myGrid}
 				theme="material"
@@ -344,17 +329,15 @@ export default function Informes() {
 				height={500}
 				source={dataAdapter}
 				columns={columns}
-				showtoolbar={true}
-				rendertoolbar={renderToolbar}
 				onCellendedit={onCellEndEdit}
 				editable={true}
+                editmode={'selectedrow'}
+                selectionmode={'singlerow'}
 				sortable={true}
 				altrows={true}
-				selectionmode={'singlerow'}
 				pageable={true}
 				pagesize={10}
 				pagesizeoptions={[10, 20, 50, 100]}
-				loadingindicator={loading}
 			/>
 			<ProgressBar show={!showAlert} message={message} progress={progress} />
 		</div>

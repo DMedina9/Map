@@ -1,4 +1,4 @@
-import { ipcMain, dialog, shell } from 'electron'
+import { ipcMain, dialog, BrowserWindow, shell } from 'electron'
 import { initDb, allAsync, runAsync } from './database/db.mjs'
 import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
 import { insertAsistencias, insertInformes, insertPublicadores } from './importExcel.mjs'
@@ -6,6 +6,23 @@ import { insertAsistencias, insertInformes, insertPublicadores } from './importE
 import getS88 from './getS88.mjs';
 
 export default function initIPC() {
+	ipcMain.on('app:minimize', (event) => {
+		BrowserWindow.fromWebContents(event.sender).minimize();
+	});
+
+	ipcMain.on('app:maximize', (event) => {
+		const window = BrowserWindow.fromWebContents(event.sender);
+		if (window.isMaximized()) {
+			window.unmaximize();
+		} else {
+			window.maximize();
+		}
+	});
+
+	ipcMain.on('app:close', (event) => {
+		BrowserWindow.fromWebContents(event.sender).close();
+	});
+
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
 	ipcMain.on('upload-informes', async (event) => {
