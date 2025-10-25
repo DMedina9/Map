@@ -1,6 +1,5 @@
 import { useRef, useEffect } from 'react'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+import PropTypes from 'prop-types'
 import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import SaveIcon from '@mui/icons-material/Save'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -10,10 +9,8 @@ import AcceptIcon from '@mui/icons-material/CheckRounded'
 import CloseIcon from '@mui/icons-material/CloseRounded'
 
 export default function ButtonBar({
-	title,
 	type,
-	loading,
-	editandoId,
+	editando,
 	onConfirm,
 	onSave,
 	onCancel,
@@ -71,7 +68,7 @@ export default function ButtonBar({
 						Cerrar
 					</JqxButton>
 				)
-			) : editandoId ? (
+			) : editando ? (
 				<>
 					<JqxButton ref={saveBtn} onClick={onSave}>
 						<SaveIcon /> Guardar
@@ -85,10 +82,10 @@ export default function ButtonBar({
 					<JqxButton ref={addBtn} onClick={onAdd}>
 						<AddIcon /> Agregar
 					</JqxButton>
-					<JqxButton ref={deleteBtn} onClick={onDelete} disabled={loading}>
+					<JqxButton ref={deleteBtn} onClick={onDelete}>
 						<DeleteIcon /> Eliminar
 					</JqxButton>
-					<JqxButton ref={importBtn} onClick={onImport} disabled={loading}>
+					<JqxButton ref={importBtn} onClick={onImport}>
 						<UploadFile /> Importar
 					</JqxButton>
 				</>
@@ -97,3 +94,23 @@ export default function ButtonBar({
 	)
 }
 
+ButtonBar.propTypes = {
+	type: PropTypes.oneOf([null, 'info', 'success', 'warning', 'error', 'confirm']),
+	editando: PropTypes.bool,
+	onConfirm: PropTypes.func,
+	onSave: PropTypes.func,
+	onCancel: PropTypes.func,
+	onAdd: PropTypes.func,
+	onDelete: PropTypes.func,
+	onImport: PropTypes.func
+}
+ButtonBar.defaultProps = {
+	type: null,
+	editando: false,
+	onConfirm: () => {},
+	onSave: () => {},
+	onCancel: () => {},
+	onAdd: () => {},
+	onDelete: () => {},
+	onImport: () => {}
+}

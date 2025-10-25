@@ -1,12 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { createRoot } from 'react-dom/client'
-import ButtonBar from '../utils/ButtonBar'
-import Alert from '../utils/Alert'
-import ProgressBar from '../utils/ProgressBar'
+import ButtonBar from '../../utils/ButtonBar'
+import Alert from '../../utils/Alert'
+import ProgressBar from '../../utils/ProgressBar'
 import dayjs from 'dayjs'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
-import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import JqxGrid, { jqx } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxgrid'
 
 // ====================== Funciones API ======================
@@ -82,12 +78,12 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 		localdata: datos,
 		updaterow: async (rowid, rowdata, commit) => {
 			// that function is called after each edit.
-			var rowindex = myGrid.current?.getrowboundindexbyid(rowid);
-			if (saveRow) await saveRow(rowindex, rowdata);
+			var rowindex = myGrid.current?.getrowboundindexbyid(rowid)
+			if (saveRow) await saveRow(rowindex, rowdata)
 			// synchronize with the server - send update command
-			// call commit with parameter true if the synchronization with the server is successful 
+			// call commit with parameter true if the synchronization with the server is successful
 			// and with parameter false if the synchronization failder.
-			commit(true);
+			commit(true)
 		}
 	}
 
@@ -206,37 +202,6 @@ export default function Informes() {
 	const [loading, setLoading] = useState(true)
 	const myGrid = useRef(null)
 
-	// ====================== Carga de datos ======================
-	useEffect(() => {
-		const cargarDatos = async () => {
-			setLoading(true)
-			const [{ success: ok1, data: infs }, { success: ok2, data: pubs }] = await Promise.all([
-				fetchInformes(),
-				fetchPublicadores()
-			])
-			const informes = ok1 ? infs.map(corregirFechas) : []
-			const listaPublicadores = ok2
-				? pubs.map((p) => ({ value: p.id, label: `${p.nombre} ${p.apellidos}` }))
-				: []
-			const { dataAdapter, columns } = getSource(informes, listaPublicadores, myGrid, saveRow)
-			setColumns(columns)
-			setDataAdapter(dataAdapter)
-			setLoading(false)
-		}
-		cargarDatos()
-
-		window.api.receive('upload-informes-message', ({ progress, message }) => {
-			setProgress(progress)
-			setMessage(message)
-		})
-
-		window.api.receive('upload-informes-reply', ({ type, message }) => {
-			setAlertType(type || 'success')
-			setMessage(message)
-			setShowAlert(true)
-		})
-	}, [])
-
 	const corregirFechas = (informe) => ({
 		...informe,
 		mes: informe.mes ? dayjs(informe.mes).toDate() : null,
@@ -248,7 +213,7 @@ export default function Informes() {
 		mes_enviado: informe.mes_enviado ? dayjs(informe.mes_enviado).format('YYYY-MM-DD') : null
 	})
 	// ====================== Eventos ======================
-	const saveRow = async (rowindex, updated) => {
+	const saveRow = useCallback(async (rowindex, updated) => {
 		if (!updated) return
 
 		// Guardar cambios en la base de datos
@@ -267,7 +232,7 @@ export default function Informes() {
 				setShowAlert(true)
 			}
 		}
-	}
+	}, [])
 	const addRow = () => {
 		myGrid.current?.addrow(null, { ...initialForm })
 		myGrid.current?.ensurerowvisible(dataAdapter.records.length - 1)
@@ -298,12 +263,43 @@ export default function Informes() {
 		}
 	}
 
+	// ====================== Carga de datos ======================
+	useEffect(() => {
+		const cargarDatos = async () => {
+			setLoading(true)
+			const [{ success: ok1, data: infs }, { success: ok2, data: pubs }] = await Promise.all([
+				fetchInformes(),
+				fetchPublicadores()
+			])
+			const informes = ok1 ? infs.map(corregirFechas) : []
+			const listaPublicadores = ok2
+				? pubs.map((p) => ({ value: p.id, label: `${p.nombre} ${p.apellidos}` }))
+				: []
+			const { dataAdapter, columns } = getSource(informes, listaPublicadores, myGrid, saveRow)
+			setColumns(columns)
+			setDataAdapter(dataAdapter)
+			setLoading(false)
+		}
+		cargarDatos()
+
+		window.api.receive('upload-informes-message', ({ progress, message }) => {
+			setProgress(progress)
+			setMessage(message)
+		})
+
+		window.api.receive('upload-informes-reply', ({ type, message }) => {
+			setAlertType(type || 'success')
+			setMessage(message)
+			setShowAlert(true)
+		})
+	}, [saveRow])
+
 	// ====================== Render ======================
 	//if (loading || !dataAdapter || !columns.length)
 	//	return <div className="p-8 text-center">Cargando informes...</div>
 
 	return (
-		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+		<div>
 			<Alert
 				type={alertType}
 				message={message}
@@ -316,7 +312,6 @@ export default function Informes() {
 				}}
 			/>
 			<ButtonBar
-				loading={loading}
 				onAdd={addRow}
 				onDelete={confirmDelete}
 				onImport={() => window.api.send('upload-informes')}
@@ -331,7 +326,9 @@ export default function Informes() {
 				columns={columns}
 				editable={true}
 				editmode="selectedrow"
-				selectionmode={'singlerow'}
+				selectionmode="singlerow"
+				ready={() => setLoading(false)}
+				loading={loading}
 				sortable={true}
 				altrows={true}
 				pageable={true}

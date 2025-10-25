@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import ButtonBar from '../utils/ButtonBar'
-import Alert from '../utils/Alert'
-import Loading from '../utils/Loading'
-import ProgressBar from '../utils/ProgressBar'
+import ButtonBar from '../../utils/ButtonBar'
+import Alert from '../../utils/Alert'
+import ProgressBar from '../../utils/ProgressBar'
 import dayjs from 'dayjs'
 
 // Estilos jqWidgets
@@ -59,28 +58,51 @@ export default function Publicadores() {
 	const myWindow = useRef(null)
 
 	// Refs de formulario
-	const refs = {
-		nombre: useRef(null),
-		apellidos: useRef(null),
-		sexo: useRef(null),
-		ungido: useRef(null),
-		fecha_nacimiento: useRef(null),
-		fecha_bautismo: useRef(null),
-		grupo: useRef(null),
-		id_tipo_publicador: useRef(null),
-		id_privilegio: useRef(null),
-		sup_grupo: useRef(null),
-		calle: useRef(null),
-		num: useRef(null),
-		colonia: useRef(null),
-		telefono_fijo: useRef(null),
-		telefono_movil: useRef(null),
-		contacto_emergencia: useRef(null),
-		tel_contacto_emergencia: useRef(null),
-		correo_contacto_emergencia: useRef(null)
-	}
+	const nombre = useRef(null)
+	const apellidos = useRef(null)
+	const sexo = useRef(null)
+	const ungido = useRef(null)
+	const fecha_nacimiento = useRef(null)
+	const fecha_bautismo = useRef(null)
+	const grupo = useRef(null)
+	const id_tipo_publicador = useRef(null)
+	const id_privilegio = useRef(null)
+	const sup_grupo = useRef(null)
+	const calle = useRef(null)
+	const num = useRef(null)
+	const colonia = useRef(null)
+	const telefono_fijo = useRef(null)
+	const telefono_movil = useRef(null)
+	const contacto_emergencia = useRef(null)
+	const tel_contacto_emergencia = useRef(null)
+	const correo_contacto_emergencia = useRef(null)
+
+	const refs = useMemo(
+		() => ({
+			nombre,
+			apellidos,
+			sexo,
+			ungido,
+			fecha_nacimiento,
+			fecha_bautismo,
+			grupo,
+			id_tipo_publicador,
+			id_privilegio,
+			sup_grupo,
+			calle,
+			num,
+			colonia,
+			telefono_fijo,
+			telefono_movil,
+			contacto_emergencia,
+			tel_contacto_emergencia,
+			correo_contacto_emergencia
+		}),
+		[]
+	)
 
 	useEffect(() => {
+		setLoading(true)
 		cargarPublicadores()
 		window.api.receive('upload-publicadores-message', ({ progress, message }) => {
 			setProgress(progress)
@@ -94,10 +116,8 @@ export default function Publicadores() {
 	}, [])
 
 	const cargarPublicadores = async () => {
-		setLoading(true)
 		const { success, data } = await fetchPublicadores()
 		setDatos(success ? data : [])
-		setLoading(false)
 	}
 
 	const dataAdapter = useMemo(() => {
@@ -176,19 +196,11 @@ export default function Publicadores() {
 		{ text: 'Nombre', datafield: 'nombre' },
 		{ text: 'Apellidos', datafield: 'apellidos' },
 		{ text: 'Tipo publicador', datafield: 'tipo_publicador' },
-		{ text: 'Privilegio', datafield: 'privilegio' },
-		{
-			text: 'Editar',
-			datafield: 'Edit',
-			columntype: 'button',
-			width: 80,
-			cellsrenderer: () => 'Editar',
-			buttonclick: (rowIndex) => iniciarEdicion(rowIndex)
-		}
+		{ text: 'Privilegio', datafield: 'privilegio' }
 	]
 
 	return (
-		<div className="m-4 p-6 bg-white rounded shadow-2xl w-full mx-auto">
+		<div>
 			<ButtonBar
 				onAdd={() => iniciarEdicion(-1)}
 				onDelete={confirmDelete}
@@ -213,6 +225,8 @@ export default function Publicadores() {
 				height={500}
 				source={dataAdapter}
 				columns={columns}
+				ready={() => setLoading(false)}
+				loading={loading}
 				pageable={true}
 				sortable={true}
 				altrows={true}
@@ -335,7 +349,7 @@ export default function Publicadores() {
 					</div>
 
 					<div className="mt-auto flex justify-center gap-2">
-						<ButtonBar editandoId={true} onSave={saveBtn} onCancel={cancelBtn} />
+						<ButtonBar editando={true} onSave={saveBtn} onCancel={cancelBtn} />
 					</div>
 				</div>
 			</JqxWindow>

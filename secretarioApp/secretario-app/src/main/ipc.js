@@ -1,88 +1,104 @@
-import { ipcMain, dialog, BrowserWindow, shell } from 'electron'
+import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { initDb, allAsync, runAsync } from './database/db.mjs'
 import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
 import { insertAsistencias, insertInformes, insertPublicadores } from './importExcel.mjs'
 
-import getS88 from './getS88.mjs';
+import getS88 from './getS88.mjs'
 
 export default function initIPC() {
 	ipcMain.on('app:minimize', (event) => {
-		BrowserWindow.fromWebContents(event.sender).minimize();
-	});
+		BrowserWindow.fromWebContents(event.sender).minimize()
+	})
 
 	ipcMain.on('app:maximize', (event) => {
-		const window = BrowserWindow.fromWebContents(event.sender);
+		const window = BrowserWindow.fromWebContents(event.sender)
 		if (window.isMaximized()) {
-			window.unmaximize();
+			window.unmaximize()
 		} else {
-			window.maximize();
+			window.maximize()
 		}
-	});
+	})
 
 	ipcMain.on('app:close', (event) => {
-		BrowserWindow.fromWebContents(event.sender).close();
-	});
+		BrowserWindow.fromWebContents(event.sender).close()
+	})
 
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
 	ipcMain.on('upload-informes', async (event) => {
-		const mainWindow = null;
+		const mainWindow = null
 		const result = await dialog.showOpenDialog(mainWindow, {
-			filters: [
-				{ name: 'Microsoft Excel', extensions: ['xlsx'] }
-			],
+			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
 		})
 		if (!result.canceled) {
-			const { success, message } = await insertInformes({ filePath: result.filePaths[0], showMessage: message => event.sender.send('upload-informes-message', message) });
-			event.sender.send('upload-informes-reply', { type: success ? "success" : "error", message })
+			const { success, message } = await insertInformes({
+				filePath: result.filePaths[0],
+				showMessage: (message) => event.sender.send('upload-informes-message', message)
+			})
+			event.sender.send('upload-informes-reply', {
+				type: success ? 'success' : 'error',
+				message
+			})
 		}
 		event.returnValue = 'canceled'
 	})
 	ipcMain.on('upload-asistencias', async (event) => {
-		const mainWindow = null;
+		const mainWindow = null
 		const result = await dialog.showOpenDialog(mainWindow, {
-			filters: [
-				{ name: 'Microsoft Excel', extensions: ['xlsx'] }
-			],
+			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
 		})
 		if (!result.canceled) {
-			const { success, message } = await insertAsistencias({ filePath: result.filePaths[0], showMessage: message => event.sender.send('upload-asistencias-message', message) });
-			event.sender.send('upload-asistencias-reply', { type: success ? "success" : "error", message })
-			return;
+			const { success, message } = await insertAsistencias({
+				filePath: result.filePaths[0],
+				showMessage: (message) => event.sender.send('upload-asistencias-message', message)
+			})
+			event.sender.send('upload-asistencias-reply', {
+				type: success ? 'success' : 'error',
+				message
+			})
+			return
 		}
 		event.returnValue = 'canceled'
 	})
 	ipcMain.on('upload-publicadores', async (event) => {
-		const mainWindow = null;
+		const mainWindow = null
 		const result = await dialog.showOpenDialog(mainWindow, {
-			filters: [
-				{ name: 'Microsoft Excel', extensions: ['xlsx'] }
-			],
+			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
 		})
 		if (!result.canceled) {
-			const { success, message } = await insertPublicadores({ filePath: result.filePaths[0], showMessage: message => event.sender.send('upload-publicadores-message', message) });
-			event.sender.send('upload-publicadores-reply', { type: success ? "success" : "error", message })
-			return;
+			const { success, message } = await insertPublicadores({
+				filePath: result.filePaths[0],
+				showMessage: (message) => event.sender.send('upload-publicadores-message', message)
+			})
+			event.sender.send('upload-publicadores-reply', {
+				type: success ? 'success' : 'error',
+				message
+			})
+			return
 		}
 		event.returnValue = 'canceled'
 	})
 
 	ipcMain.on('save-S-21', async (event, [year, pubId]) => {
-		const mainWindow = null;
+		const mainWindow = null
 		const result = await dialog.showOpenDialog(mainWindow, {
 			properties: ['openDirectory']
 		})
 		if (!result.canceled) {
-			let r = await GenerarS21(year, pubId, result.filePaths[0], message => event.sender.send('save-S-21-message', message));
+			let r = await GenerarS21(year, pubId, result.filePaths[0], (message) =>
+				event.sender.send('save-S-21-message', message)
+			)
 			if (!r.success) {
 				event.returnValue = 'failed'
-				return;
+				return
 			}
 			if (!pubId)
-				r = await GenerarS21Totales(year, pubId, result.filePaths[0], message => event.sender.send('save-S-21-message', message));
+				r = await GenerarS21Totales(year, pubId, result.filePaths[0], (message) =>
+					event.sender.send('save-S-21-message', message)
+				)
 
 			/*if (pubId) {
 				await shell.openPath(filePaths[0]);
@@ -90,21 +106,29 @@ export default function initIPC() {
 			}
 			else*/
 			if (r.success)
-				event.sender.send('save-S-21-reply', { type: "success", message: r.filePaths.length > 1 ? "Archivos generados con éxito!" : "Archivo generado con éxito!" })
+				event.sender.send('save-S-21-reply', {
+					type: 'success',
+					message:
+						r.filePaths.length > 1
+							? 'Archivos generados con éxito!'
+							: 'Archivo generado con éxito!'
+				})
 			else {
 				event.returnValue = 'failed'
-				return;
+				return
 			}
 		}
 		event.returnValue = 'canceled'
 	})
 	ipcMain.on('save-S-88', async (event, year) => {
-		const mainWindow = null;
+		const mainWindow = null
 		const result = await dialog.showOpenDialog(mainWindow, {
 			properties: ['openDirectory']
 		})
 		if (!result.canceled) {
-			let r = await GenerarS88(year, result.filePaths[0], message => event.sender.send('save-S-88-message', message));
+			let r = await GenerarS88(year, result.filePaths[0], (message) =>
+				event.sender.send('save-S-88-message', message)
+			)
 
 			/*if (pubId) {
 				await shell.openPath(filePaths[0]);
@@ -112,23 +136,23 @@ export default function initIPC() {
 			}
 			else*/
 			if (r.success)
-				event.sender.send('save-S-88-reply', { type: "success", message: "Archivo generado con éxito!" })
+				event.sender.send('save-S-88-reply', {
+					type: 'success',
+					message: 'Archivo generado con éxito!'
+				})
 			else {
 				event.returnValue = 'failed'
-				return;
+				return
 			}
 		}
 		event.returnValue = 'canceled'
 	})
 
-	ipcMain.handle('get-mes-informe', async (event) => {
+	ipcMain.handle('get-mes-informe', async () => {
 		try {
 			const db = await initDb()
-			const rows = await allAsync(
-				db,
-				`select max(mes) as mes from Informes`
-			)
-			await db.close()
+			const rows = await allAsync(db, `select max(mes) as mes from Informes`)
+			db.close()
 			const aMonth = rows[0].mes.split('-')
 			const month = new Date(aMonth[0], aMonth[1] * 1 - 1, 1)
 			return month
@@ -137,14 +161,14 @@ export default function initIPC() {
 			return null
 		}
 	})
-	ipcMain.handle('get-asistencias', async (event) => {
+	ipcMain.handle('get-asistencias', async () => {
 		try {
 			const db = await initDb()
 			const rows = await allAsync(
 				db,
 				`select *, case when cast(strftime('%w', fecha) as integer) in (6,0) then 'Fin de semana' else 'Entresemana' end as tipo_asistencia from Asistencias order by fecha desc`
 			)
-			await db.close()
+			db.close()
 			return { success: true, data: rows }
 		} catch (error) {
 			console.error('Database query error:', error)
@@ -154,13 +178,13 @@ export default function initIPC() {
 	ipcMain.handle('add-asistencia', async (event, asistencia) => {
 		try {
 			const db = await initDb()
-			const stmt = await db.prepare(
-				`insert or ignore into Asistencias (fecha, asistentes, notas) values (?, ?, ?)`
+			const id = await runAsync(
+				db,
+				`insert or ignore into Asistencias (fecha, asistentes, notas) values (?, ?, ?)`,
+				[asistencia.fecha, asistencia.asistentes, asistencia.notas]
 			)
-			const result = await stmt.run([asistencia.fecha, asistencia.asistentes, asistencia.notas])
-			await stmt.finalize()
-			await db.close()
-			return { success: true, lastID: result.lastID }
+			db.close()
+			return { success: true, id }
 		} catch (error) {
 			console.error('Database insert error:', error)
 			return { success: false, error: error.message }
@@ -170,9 +194,14 @@ export default function initIPC() {
 		try {
 			const db = await initDb()
 			const stmt = await db.prepare(
-				`update Asistencias set fecha = ?, asistentes = ? where id = ?`
+				`update Asistencias set fecha = ?, asistentes = ?, notas = ? where id = ?`
 			)
-			const result = await stmt.run([asistencia.fecha, asistencia.asistentes, asistencia.id])
+			const result = await stmt.run([
+				asistencia.fecha,
+				asistencia.asistentes,
+				asistencia.notas,
+				asistencia.id
+			])
 			await stmt.finalize()
 			await db.close()
 			return { success: true, changes: result.changes }
@@ -195,7 +224,7 @@ export default function initIPC() {
 		}
 	})
 
-	ipcMain.handle('get-publicadores', async (event) => {
+	ipcMain.handle('get-publicadores', async () => {
 		try {
 			const db = await initDb()
 			const rows = await allAsync(
@@ -239,7 +268,7 @@ export default function initIPC() {
 			where 1 = 1
 			${anio_servicio && `and case when cast(strftime('%m', i.mes) as integer) > 8 then 1 else 0 end + cast(strftime('%Y', i.mes) as integer) = ${anio_servicio}`}
 			${id_publicador && `and p.id = ${id_publicador}`}
-			order by i.mes ${(dir === undefined ? 'desc' : dir)}, p.apellidos, p.nombre`
+			order by i.mes ${dir === undefined ? 'desc' : dir}, p.apellidos, p.nombre`
 			)
 			await db.close()
 			return { success: true, data: rows }
@@ -251,7 +280,8 @@ export default function initIPC() {
 	ipcMain.handle('add-informe', async (event, informe) => {
 		try {
 			const db = await initDb()
-			const id = await runAsync(db,
+			const id = await runAsync(
+				db,
 				`insert into Informes (
 					id_publicador,
 					mes,
@@ -273,9 +303,9 @@ export default function initIPC() {
 					informe.horas,
 					informe.notas,
 					informe.horas_SS
-				])
+				]
+			)
 			await db.close()
-			console.log('Inserted informe with ID:', id);
 			return { success: true, id }
 		} catch (error) {
 			console.error('Database insert error:', error)
@@ -330,7 +360,7 @@ export default function initIPC() {
 		}
 	})
 
-	ipcMain.handle('get-privilegios', async (event) => {
+	ipcMain.handle('get-privilegios', async () => {
 		try {
 			const db = await initDb()
 			const rows = await allAsync(db, `select * from Privilegio order by id`)
@@ -341,7 +371,7 @@ export default function initIPC() {
 			return { success: false, error: error.message }
 		}
 	})
-	ipcMain.handle('get-tipos-publicador', async (event) => {
+	ipcMain.handle('get-tipos-publicador', async () => {
 		try {
 			const db = await initDb()
 			const rows = await allAsync(db, `select * from Tipo_Publicador order by id`)
@@ -457,17 +487,17 @@ export default function initIPC() {
 	})
 	ipcMain.handle('delete-publicador', async (event, publicadorId) => {
 		try {
-			const db = await initDb();
+			const db = await initDb()
 
-			await db.run(`DELETE FROM Informes WHERE id_publicador = ?`, publicadorId);
-			const result = await db.run(`DELETE FROM Publicadores WHERE id = ?`, publicadorId);
+			await db.run(`DELETE FROM Informes WHERE id_publicador = ?`, publicadorId)
+			const result = await db.run(`DELETE FROM Publicadores WHERE id = ?`, publicadorId)
 
-			await db.close();
+			await db.close()
 
-			return { success: true, changes: result.changes };
+			return { success: true, changes: result.changes }
 		} catch (error) {
-			console.error('Database delete error:', error);
-			return { success: false, error: error.message };
+			console.error('Database delete error:', error)
+			return { success: false, error: error.message }
 		}
 	})
 	ipcMain.handle('get-S3', async (event, [anio, type]) => {
@@ -529,7 +559,7 @@ export default function initIPC() {
 					and date(i.mes) between date(?, '-5 months') and date(?)) > 0
 			`,
 				[month, month]
-			);
+			)
 			const activos = rows[0]?.activos
 			rows = await allAsync(
 				db,
@@ -541,21 +571,22 @@ export default function initIPC() {
 				and strftime('%Y-%m-01', fecha) = ?
 			`,
 				[month]
-			);
+			)
 			const asistencia_promedio = rows[0]?.asistencia_promedio
 			rows = await allAsync(
 				db,
 				`with tmpEncabezadosS1 as (
-	select row_number() over (order by case id when 2 then 3 when 3 then 2 else id end) as id, titulo
-	from (
-		select 0 as id, '' as titulo
-		union all
-		select id, replace(descripcion, 'sor', 'sores') || 'es' as titulo
-		from Tipo_Publicador
-	) a
-)
-select * from tmpEncabezadosS1
-order by id;`)
+					select row_number() over (order by case id when 2 then 3 when 3 then 2 else id end) as id, titulo
+					from (
+						select 0 as id, '' as titulo
+						union all
+						select id, replace(descripcion, 'sor', 'sores') || 'es' as titulo
+						from Tipo_Publicador
+					) a
+				)
+				select * from tmpEncabezadosS1
+				order by id;`
+			)
 			const subsecciones = await allAsync(
 				db,
 				`select case tp.id when 2 then 3 when 3 then 2 else tp.id end + 1 as id, count(1) as cantidad, sum(horas) as horas, sum(cursos_biblicos) as cursos_biblicos
@@ -580,7 +611,7 @@ order by id;`)
 					valor: asistencia_promedio
 				}
 			]
-			let subseccion = subsecciones.find((value, index) => value.id == 2)
+			let subseccion = subsecciones.find((value) => value.id == 2)
 			rows[1].subsecciones = [
 				{
 					label: 'Cantidad de informes',
@@ -591,7 +622,7 @@ order by id;`)
 					valor: subseccion ? subseccion.cursos_biblicos : 0
 				}
 			]
-			subseccion = subsecciones.find((value, index) => value.id == 3)
+			subseccion = subsecciones.find((value) => value.id == 3)
 			rows[2].subsecciones = [
 				{
 					label: 'Cantidad de informes',
@@ -603,7 +634,7 @@ order by id;`)
 					valor: subseccion ? subseccion.cursos_biblicos : 0
 				}
 			]
-			subseccion = subsecciones.find((value, index) => value.id == 4)
+			subseccion = subsecciones.find((value) => value.id == 4)
 			rows[3].subsecciones = [
 				{
 					label: 'Cantidad de informes',

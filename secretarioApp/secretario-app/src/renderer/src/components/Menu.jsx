@@ -1,31 +1,29 @@
 import { useRef, useEffect, useState } from 'react'
-import { Routes, Route, Link, useNavigate } from 'react-router-dom'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
-import JqxMenu from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxmenu'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import TitleBar from './TitleBar'
+import JqxMenu from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxmenu'
 
-import Publicadores from './Catalogos/Publicadores'
-import Informes from './Catalogos/Informes'
-import Asistencias from './Catalogos/Asistencias'
-import S1 from './Reportes/S1'
-import S3 from './Reportes/S3'
-import S21 from './Reportes/S21'
-import S88 from './Reportes/S88'
-import ImportGrid from './Importar'
+import Publicadores from './Menu/Catalogos/Publicadores'
+import Informes from './Menu/Catalogos/Informes'
+import Asistencias from './Menu/Catalogos/Asistencias'
+import S1 from './Menu/Reportes/S1'
+import S3 from './Menu/Reportes/S3'
+import S21 from './Menu/Reportes/S21'
+import S88 from './Menu/Reportes/S88'
+import Portada from './Menu/Portada'
 
-function MainMenu() {
+export default function MainMenu() {
 	const menuRef = useRef(null)
-	const [title, setTitle] = useState('Secretario de Congregación')
 	const navigate = useNavigate()
+	const [title, setTitle] = useState('Secretario de Congregación')
 
 	useEffect(() => {
 		if (menuRef.current) {
 			menuRef.current.setOptions({
-				theme: 'material-purple',
+				theme: 'material',
 				width: '100%',
-				mode: 'horizontal',
-				height: 35
+				height: 40,
+				mode: 'horizontal'
 			})
 		}
 	}, [])
@@ -51,11 +49,10 @@ function MainMenu() {
 
 	return (
 		<>
-			<TitleBar title={title} />
-
-			{/* Barra superior */}
-			<div className="shadow-md">
-				<JqxMenu ref={menuRef} theme="material" onItemclick={handleMenuClick}>
+			{/* Menú horizontal fijo arriba */}
+			<div style={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
+				<TitleBar title={title} />
+				<JqxMenu ref={menuRef} onItemclick={handleMenuClick} theme="material">
 					<ul>
 						<li>Inicio</li>
 						<li>
@@ -79,10 +76,16 @@ function MainMenu() {
 				</JqxMenu>
 			</div>
 
+			{/* Espaciado para no tapar contenido con el menú fijo */}
+			<div style={{ height: 78 }} />
+
 			{/* Contenido */}
-			<div className="p-4">
+			<div
+				style={{ margin: '10px 20px' }}
+				className="m-4 p-6 bg-white rounded shadow-2xl mx-auto"
+			>
 				<Routes>
-					<Route path="/" element={<ImportGrid />} />
+					<Route path="/" element={<Portada />} />
 					<Route path="/catalogos/publicadores" element={<Publicadores />} />
 					<Route path="/catalogos/informes" element={<Informes />} />
 					<Route path="/catalogos/asistencias" element={<Asistencias />} />
@@ -95,5 +98,3 @@ function MainMenu() {
 		</>
 	)
 }
-
-export default MainMenu

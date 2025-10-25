@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
 import PropTypes from 'prop-types'
-import Alert from '../utils/Alert'
+import Alert from '../../utils/Alert'
+
+// --- API invocaciones
 
 const fetchS88 = async (year, type) => await window.api.invoke('get-S88', [year, type])
 

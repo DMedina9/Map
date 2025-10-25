@@ -3,7 +3,7 @@
   justify-content: space-between;
   align-items: center;
   height: 36px;
-  background-color: #1ca8dd;
+  background-color: #337ab7;
   color: #fff;
   font-family: sans-serif;
   -webkit-app-region: drag; /* Habilita el arrastre de la ventana */
@@ -20,19 +20,16 @@
   -webkit-app-region: no-drag; /* Desactiva el arrastre en los botones */
 }
 
-.titlebar-buttons button {
-  background: transparent;
+.titlebar-buttons .jqx-button {
+  background: transparent !important;
   border: none;
-  color: #fff;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
+  color: #fff !important;
   -webkit-app-region: no-drag;
 }
 
-.titlebar-buttons button:hover {
-  background-color: #555;
+.titlebar-buttons .jqx-button:hover {
+  background-color: #2e6da4 !important;
 }
-.titlebar-buttons button:active {
-  background-color: #777;
+.titlebar-buttons .jqx-button:active {
+  background-color: #337ab7 !important;
 }

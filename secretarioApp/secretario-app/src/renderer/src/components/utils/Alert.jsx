@@ -1,6 +1,5 @@
 import { useRef, useEffect } from 'react'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+import PropTypes from 'prop-types'
 import JqxWindow from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxwindow'
 import ButtonBar from './ButtonBar'
 
@@ -55,4 +54,11 @@ export default function Alert({ type = 'info', message, show, onConfirm, onCance
 			</div>
 		</JqxWindow>
 	)
+}
+Alert.propTypes = {
+	type: PropTypes.oneOf(['info', 'success', 'warning', 'error', 'confirm']),
+	message: PropTypes.string,
+	show: PropTypes.bool.isRequired,
+	onConfirm: PropTypes.func,
+	onCancel: PropTypes.func
 }
