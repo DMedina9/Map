@@ -49,7 +49,6 @@ const TitleBar = ({ title }) => {
 	}
 
 	window.api.receive('window-state-changed', (newState) => {
-		console.log('Window state changed to:', newState)
 		setState(newState)
 	})
 	return (

@@ -81,8 +81,7 @@ export default function MainMenu() {
 
 			{/* Contenido */}
 			<div
-				style={{ margin: '10px 20px' }}
-				className="m-4 p-6 bg-white rounded shadow-2xl mx-auto"
+				style={{ margin: '0px', overflow: 'auto', height: 'calc(100vh - 98px)' }}
 			>
 				<Routes>
 					<Route path="/" element={<Portada />} />

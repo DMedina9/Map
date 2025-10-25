@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react'
-import Alert from './../../utils/Alert'
+import { useEffect, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
-import ProgressBar from '../../utils/ProgressBar'
-import TextField from '@mui/material/TextField'
-import Autocomplete from '@mui/material/Autocomplete'
 import dayjs from 'dayjs'
+import Alert from './../../utils/Alert'
+import ProgressBar from '../../utils/ProgressBar'
+
+// Controles jqWidgets
+import JqxComboBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcombobox'
+import JqxDropDownList from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdropdownlist'
+import JqxCheckBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcheckbox'
+import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
 const fetchInformes = async (anio_servicio, id_publicador) =>
 	await window.api.invoke('get-informes', [anio_servicio, id_publicador, ''])
+
 const MONTHS = [
 	'Septiembre',
 	'Octubre',
@@ -35,6 +40,7 @@ const S21 = () => {
 	const [alertType, setAlertType] = useState('success')
 	const [message, setMessage] = useState('')
 	const [progress, setProgress] = useState(0)
+	const comboRef = useRef(null)
 
 	useEffect(() => {
 		window.api.receive('save-S-21-message', ({ progress, message }) => {
@@ -46,7 +52,6 @@ const S21 = () => {
 			setMessage(message)
 			setShowAlert(true)
 		})
-		// Cargar publicadores desde la base de datos
 		const cargarPublicadores = async () => {
 			const { success, data } = await fetchPublicadores()
 			setPublicadores(success ? data : [])
@@ -55,7 +60,6 @@ const S21 = () => {
 	}, [])
 
 	useEffect(() => {
-		// Cargar informes desde la base de datos
 		const cargarInformes = async () => {
 			if (year && pubId) {
 				const { success, data } = await fetchInformes(year, pubId)
@@ -64,6 +68,17 @@ const S21 = () => {
 		}
 		cargarInformes()
 	}, [year, pubId])
+
+	// Fuente de datos para jqxComboBox
+	const source = publicadores.map((p) => ({
+		id: p.id,
+		label: `${p.nombre} ${p.apellidos}`
+	}))
+
+	const yearOptions = [initialYear - 1, initialYear].map((y) => ({
+		label: y.toString(),
+		value: y
+	}))
 
 	return (
 		<div className="max-w-5xl mx-auto bg-white shadow-2xl border border-gray-300 rounded-lg p-8 mt-10">
@@ -84,27 +99,36 @@ const S21 = () => {
 					setShowAlert(false)
 				}}
 			/>
-			<div className="grid grid-cols-4 gap-4 mb-2">
-				<Autocomplete
-					className="col-span-4 flex flex-row gap-4 items-center relative"
-					options={publicadores}
-					getOptionLabel={(option) => `${option.nombre} ${option.apellidos}`}
-					id="id_publicador"
-					openOnFocus
-					value={pub}
-					onChange={(e, pub) => {
-						setPub(pub)
-						setPubId(pub.id || null)
-					}}
-					renderInput={(params) => (
-						<TextField {...params} label="Nombre:" variant="standard" />
-					)}
-				/>
-				<DatosPublicador pubId={pubId} publicadores={publicadores} />
+
+			<div className="grid grid-cols-4 gap-4 mb-2 items-center">
+				<div className="col-span-4 flex flex-col">
+					<JqxComboBox
+						ref={comboRef}
+						theme="material"
+						width={'100%'}
+						height={30}
+						placeHolder="Buscar publicador..."
+						source={source}
+						autoComplete
+						searchMode="containsignorecase"
+						selectedIndex={-1}
+						valueMember="id"
+						displayMember="label"
+						onSelect={(e) => {
+							const selected = e.args?.item
+							if (selected) {
+								const p = publicadores.find((x) => x.id === selected.value)
+								setPub(p || null)
+								setPubId(p?.id || 0)
+							}
+						}}
+					/>
+				</div>
+
+				<DatosPublicador pub={pub} />
 			</div>
 
-			{/* Privilegios */}
-			<PrivilegiosPublicador pubId={pubId} publicadores={publicadores} />
+			<PrivilegiosPublicador pub={pub} />
 
 			{/* Tabla de registros mensuales */}
 			<div className="overflow-x-auto">
@@ -114,21 +138,17 @@ const S21 = () => {
 							<th className="border px-2 py-1 w-40">
 								Año de servicio
 								<br />
-								<select
-									onChange={(e) => setYear(Number(e.target.value))}
-									value={year}
-								>
-									{[
-										initialYear - 2,
-										initialYear - 1,
-										initialYear,
-										initialYear + 1
-									].map((year) => (
-										<option key={year} value={year}>
-											{year}
-										</option>
-									))}
-								</select>
+								<div className="flex justify-center">
+									<JqxDropDownList
+										width="auto"
+										height={25}
+										theme="material"
+										autoDropDownHeight={true}
+										source={yearOptions}
+										selectedIndex={yearOptions.findIndex((y) => y.value === year)}
+										onChange={(e) => setYear(e.args.item.value)}
+									/>
+								</div>
 							</th>
 							<th className="border px-2 py-1 w-20">
 								Participación en el ministerio
@@ -148,29 +168,28 @@ const S21 = () => {
 										{month}
 									</td>
 									<td className="border px-2 py-1">
-										<input
-											type="checkbox"
-											checked={informe && informe.predico_en_el_mes}
-											readOnly
+										<JqxCheckBox
+											className="flex justify-center"
+											theme="material"
+											checked={informe?.predico_en_el_mes == 1 || false}
+											disabled
+											boxSize={16}
 										/>
 									</td>
+									<td className="border px-2 py-1">{informe?.cursos_biblicos}</td>
 									<td className="border px-2 py-1">
-										{informe && informe.cursos_biblicos}
-									</td>
-									<td className="border px-2 py-1">
-										<input
-											type="checkbox"
+										<JqxCheckBox
+											className="flex justify-center"
+											theme="material"
 											checked={
-												informe &&
-												informe.tipo_publicador === 'Precursor auxiliar'
+												informe?.tipo_publicador === 'Precursor auxiliar'
 											}
-											readOnly
+											disabled
+											boxSize={16}
 										/>
 									</td>
-									<td className="border px-2 py-1">{informe && informe.horas}</td>
-									<td className="border px-2 py-1 text-left">
-										{informe && informe.notas}
-									</td>
+									<td className="border px-2 py-1">{informe?.horas}</td>
+									<td className="border px-2 py-1 text-left">{informe?.notas}</td>
 								</tr>
 							)
 						})}
@@ -181,151 +200,131 @@ const S21 = () => {
 			{/* Total de horas */}
 			<div className="flex justify-end mt-2">
 				<span className="font-semibold">
-					Total de horas: {informes.reduce((acc, r) => acc + r.horas, 0)}
+					Total de horas: {informes.reduce((acc, r) => acc + (r.horas || 0), 0)}
 				</span>
 			</div>
-			<div className="flex justify-end mt-2">
-				{year && pubId != 0 && (
-					<button
-						className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
+
+			{/* Botones */}
+			<div className="flex justify-end mt-2 gap-2">
+				{year && pubId !== 0 && (
+					<JqxButton
+						width={150}
+						height={30}
+						theme="material"
 						onClick={() => window.api.send('save-S-21', [year, pubId])}
 					>
 						Exportar a PDF
-					</button>
+					</JqxButton>
 				)}
 				{year && (
-					<button
-						className="bg-blue-500 text-white px-4 py-2 m-2 rounded hover:bg-blue-600"
+					<JqxButton
+						width={150}
+						height={30}
+						theme="material"
 						onClick={() => window.api.send('save-S-21', [year, null])}
 					>
 						Exportar todos
-					</button>
+					</JqxButton>
 				)}
 			</div>
+
 			<ProgressBar show={!showAlert} message={message} progress={progress} />
 		</div>
 	)
 }
 
-function DatosPublicador({ pubId, publicadores }) {
-	const pub = publicadores.find((item) => item.id === pubId)
-	if (pub)
-		return (
-			<>
-				<div className="col-span-2 flex flex-row gap-2 items-center">
-					<span className="font-semibold">Fecha de nacimiento:</span>
-					<span className="border-b border-gray-400 px-2">
-						{pub.fecha_nacimiento && dayjs(pub.fecha_nacimiento).format('DD/MM/YYYY')}
-					</span>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.sexo == 'H'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Hombre</label>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.sexo == 'M'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Mujer</label>
-				</div>
-				<div className="col-span-2 flex flex-row gap-2 items-center">
-					<span className="font-semibold">Fecha de bautismo:</span>
-					<span className="border-b border-gray-400 px-2">
-						{pub.fecha_bautismo && dayjs(pub.fecha_bautismo).format('DD/MM/YYYY')}
-					</span>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={!pub.ungido}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Otras ovejas</label>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.ungido}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Ungido</label>
-				</div>
-			</>
-		)
+function DatosPublicador({ pub }) {
+	if (!pub) return null
+	return (
+		<>
+			<div className="col-span-4 flex mb-2">
+				<span className="font-semibold">Nombre:</span>
+				<span className="border-b border-gray-400 px-2">
+					{pub.nombre} {pub.apellidos}
+				</span>
+			</div>
+			<div className="col-span-2 flex flex-row gap-2 items-center">
+				<span className="font-semibold">Fecha de nacimiento:</span>
+				<span className="border-b border-gray-400 px-2">
+					{pub.fecha_nacimiento && dayjs(pub.fecha_nacimiento).format('DD/MM/YYYY')}
+				</span>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox theme="material" checked={pub.sexo === 'H'} disabled />
+				<label className="font-semibold">Hombre</label>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox theme="material" checked={pub.sexo === 'M'} disabled />
+				<label className="font-semibold">Mujer</label>
+			</div>
+			<div className="col-span-2 flex flex-row gap-2 items-center">
+				<span className="font-semibold">Fecha de bautismo:</span>
+				<span className="border-b border-gray-400 px-2">
+					{pub.fecha_bautismo && dayjs(pub.fecha_bautismo).format('DD/MM/YYYY')}
+				</span>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox theme="material" checked={!pub.ungido} disabled />
+				<label className="font-semibold">Otras ovejas</label>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox theme="material" checked={pub.ungido} disabled />
+				<label className="font-semibold">Ungido</label>
+			</div>
+		</>
+	)
 }
 
 DatosPublicador.propTypes = {
-	pubId: PropTypes.number.isRequired,
-	publicadores: PropTypes.array.isRequired
+	pub: PropTypes.object
 }
 
-function PrivilegiosPublicador({ pubId, publicadores }) {
-	const pub = publicadores.find((item) => item.id === pubId)
-	if (pub)
-		return (
-			<div className="grid grid-cols-5 gap-2 mb-4">
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.privilegio === 'Anciano'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Anciano</label>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.privilegio === 'Siervo ministerial'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Siervo ministerial</label>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.tipo_publicador === 'Precursor regular'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Precursor regular</label>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.tipo_publicador === 'Precursor especial'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Precursor especial</label>
-				</div>
-				<div className="flex flex-row gap-2 items-center">
-					<input
-						type="checkbox"
-						checked={pub.tipo_publicador === 'Misionero que sirve en el campo'}
-						readOnly
-						className="accent-blue-600"
-					/>
-					<label className="font-semibold">Misionero que sirve en el campo</label>
-				</div>
+function PrivilegiosPublicador({ pub }) {
+	if (!pub) return null
+	return (
+		<div className="grid grid-cols-5 gap-2 mb-4">
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox theme="material" checked={pub.privilegio === 'Anciano'} disabled />
+				<label className="font-semibold">Anciano</label>
 			</div>
-		)
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox
+					theme="material"
+					checked={pub.privilegio === 'Siervo ministerial'}
+					disabled
+				/>
+				<label className="font-semibold">Siervo ministerial</label>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox
+					theme="material"
+					checked={pub.tipo_publicador === 'Precursor regular'}
+					disabled
+				/>
+				<label className="font-semibold">Precursor regular</label>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox
+					theme="material"
+					checked={pub.tipo_publicador === 'Precursor especial'}
+					disabled
+				/>
+				<label className="font-semibold">Precursor especial</label>
+			</div>
+			<div className="flex flex-row gap-2 items-center">
+				<JqxCheckBox
+					theme="material"
+					checked={pub.tipo_publicador === 'Misionero que sirve en el campo'}
+					disabled
+				/>
+				<label className="font-semibold">Misionero que sirve en el campo</label>
+			</div>
+		</div>
+	)
 }
 
 PrivilegiosPublicador.propTypes = {
-	pubId: PropTypes.number.isRequired,
-	publicadores: PropTypes.array.isRequired
+	pub: PropTypes.object
 }
 
 export default S21
