@@ -3,6 +3,9 @@ import { Routes, Route, useNavigate } from 'react-router-dom'
 import TitleBar from './TitleBar'
 import JqxMenu from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxmenu'
 
+import CargaPublicadores from './Menu/Cargas/Publicadores'
+import CargaInformes from './Menu/Cargas/Informes'
+import CargaAsistencias from './Menu/Cargas/Asistencias'
 import Publicadores from './Menu/Catalogos/Publicadores'
 import Informes from './Menu/Catalogos/Informes'
 import Asistencias from './Menu/Catalogos/Asistencias'
@@ -30,20 +33,25 @@ export default function MainMenu() {
 
 	const handleMenuClick = (event) => {
 		const text = event.args.textContent.trim()
+		const key = event.args.attributes.value.nodeValue || key
+		console.log(key)
 		const map = {
 			Inicio: '/',
-			Publicadores: '/catalogos/publicadores',
-			Informes: '/catalogos/informes',
-			Asistencias: '/catalogos/asistencias',
+			'Cat-Publicadores': '/catalogos/publicadores',
+			'Cat-Informes': '/catalogos/informes',
+			'Cat-Asistencias': '/catalogos/asistencias',
+			'Carga-Publicadores': '/cargas/publicadores',
+			'Carga-Informes': '/cargas/informes',
+			'Carga-Asistencias': '/cargas/asistencias',
 			'S-1': '/reportes/S1',
 			'S-3': '/reportes/S3',
 			'S-21': '/reportes/S21',
 			'S-88': '/reportes/S88'
 		}
 
-		if (map[text]) {
+		if (map[key]) {
 			setTitle(`Secretario de Congregación — ${text}`)
-			navigate(map[text])
+			navigate(map[key])
 		}
 	}
 
@@ -52,24 +60,38 @@ export default function MainMenu() {
 			{/* Menú horizontal fijo arriba */}
 			<div style={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000 }}>
 				<TitleBar title={title} />
-				<JqxMenu ref={menuRef} onItemclick={handleMenuClick} theme="material">
+				<JqxMenu
+					ref={menuRef}
+					theme="material"
+					keyboardNavigation={true}
+					onItemclick={handleMenuClick}
+				>
 					<ul>
 						<li>Inicio</li>
 						<li>
 							Catálogos
 							<ul>
-								<li>Publicadores</li>
-								<li>Informes</li>
-								<li>Asistencias</li>
+								<li value={"Cat-Publicadores"}>Publicadores</li>
+								<li value={"Cat-Informes"}>Informes</li>
+								<li value={"Cat-Asistencias"}>Asistencias</li>
+							</ul>
+						</li>
+						<li>
+							Cargas
+							<ul>
+								<li value={"Carga-Publicadores"}>Publicadores</li>
+								<li value={"Carga-Informes"}>Informes</li>
+								<li value={"Carga-Asistencias"}>Asistencias</li>
 							</ul>
 						</li>
 						<li>
 							Reportes
 							<ul>
-								<li>S-1</li>
-								<li>S-3</li>
-								<li>S-21</li>
-								<li>S-88</li>
+								<li value={"S-1"}>S-1</li>
+								<li type="separator"></li>
+								<li value={"S-3"}>S-3</li>
+								<li value={"S-21"}>S-21</li>
+								<li value={"S-88"}>S-88</li>
 							</ul>
 						</li>
 					</ul>
@@ -80,14 +102,15 @@ export default function MainMenu() {
 			<div style={{ height: 78 }} />
 
 			{/* Contenido */}
-			<div
-				style={{ margin: '0px', overflow: 'auto', height: 'calc(100vh - 98px)' }}
-			>
+			<div style={{ margin: '0px', overflow: 'auto', height: 'calc(100vh - 98px)' }}>
 				<Routes>
 					<Route path="/" element={<Portada />} />
 					<Route path="/catalogos/publicadores" element={<Publicadores />} />
 					<Route path="/catalogos/informes" element={<Informes />} />
 					<Route path="/catalogos/asistencias" element={<Asistencias />} />
+					<Route path="/cargas/publicadores" element={<CargaPublicadores />} />
+					<Route path="/cargas/informes" element={<CargaInformes />} />
+					<Route path="/cargas/asistencias" element={<CargaAsistencias />} />
 					<Route path="/reportes/S1" element={<S1 />} />
 					<Route path="/reportes/S3" element={<S3 />} />
 					<Route path="/reportes/S21" element={<S21 />} />
