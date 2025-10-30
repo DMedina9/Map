@@ -11,6 +11,7 @@ import CloseIcon from '@mui/icons-material/CloseRounded'
 export default function ButtonBar({
 	type,
 	editando,
+	showDelete,
 	onConfirm,
 	onSave,
 	onCancel,
@@ -70,24 +71,35 @@ export default function ButtonBar({
 				)
 			) : editando ? (
 				<>
-					<JqxButton ref={saveBtn} onClick={onSave}>
+					<JqxButton ref={saveBtn} onClick={onSave} theme="material">
 						<SaveIcon /> Guardar
 					</JqxButton>
-					<JqxButton ref={cancelBtn} onClick={onCancel}>
+					<JqxButton ref={cancelBtn} onClick={onCancel} theme="material">
 						<CloseIcon /> Cancelar
 					</JqxButton>
 				</>
 			) : (
 				<>
-					<JqxButton ref={addBtn} onClick={onAdd}>
-						<AddIcon /> Agregar
-					</JqxButton>
-					<JqxButton ref={deleteBtn} onClick={onDelete}>
-						<DeleteIcon /> Eliminar
-					</JqxButton>
-					<JqxButton ref={importBtn} onClick={onImport}>
-						<UploadFile /> Importar
-					</JqxButton>
+					{onSave && (
+						<JqxButton ref={saveBtn} onClick={onSave} theme="material">
+							<SaveIcon /> Guardar
+						</JqxButton>
+					)}
+					{onAdd && (
+						<JqxButton ref={addBtn} onClick={onAdd} theme="material">
+							<AddIcon /> Agregar
+						</JqxButton>
+					)}
+					{showDelete && onDelete && (
+						<JqxButton ref={deleteBtn} onClick={onDelete} theme="material">
+							<DeleteIcon /> Eliminar
+						</JqxButton>
+					)}
+					{onImport && (
+						<JqxButton ref={importBtn} onClick={onImport} theme="material">
+							<UploadFile /> Importar
+						</JqxButton>
+					)}
 				</>
 			)}
 		</div>
@@ -97,6 +109,7 @@ export default function ButtonBar({
 ButtonBar.propTypes = {
 	type: PropTypes.oneOf([null, 'info', 'success', 'warning', 'error', 'confirm']),
 	editando: PropTypes.bool,
+	showDelete: PropTypes.bool,
 	onConfirm: PropTypes.func,
 	onSave: PropTypes.func,
 	onCancel: PropTypes.func,
@@ -107,6 +120,7 @@ ButtonBar.propTypes = {
 ButtonBar.defaultProps = {
 	type: null,
 	editando: false,
+	showDelete: false,
 	onConfirm: () => {},
 	onSave: () => {},
 	onCancel: () => {},

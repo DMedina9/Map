@@ -103,7 +103,7 @@ export default function S88() {
 			<div className="flex justify-end mt-2">
 				<JqxButton
 					width={150}
-					height={35}
+					height={25}
 					template="success"
 					theme="material"
 					onClick={() => window.api.send('save-S-88', year)}

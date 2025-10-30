@@ -1,7 +1,12 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { initDb, allAsync, runAsync } from './database/db.mjs'
 import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
-import { insertAsistencias, insertInformes, insertPublicadores } from './importExcel.mjs'
+import {
+	insertAsistencias,
+	getAsistenciasFromXLSX,
+	insertInformes,
+	insertPublicadores
+} from './importExcel.mjs'
 
 import getS88 from './getS88.mjs'
 
@@ -43,6 +48,31 @@ export default function initIPC() {
 		}
 		event.returnValue = 'canceled'
 	})
+
+	ipcMain.handle('upload-asistencias-grid', async (event, asistencias) => {
+		if (asistencias && asistencias.length > 0) {
+			try {
+				const db = await initDb()
+				for (const asistencia of asistencias) {
+					const id = await runAsync(
+						db,
+						`INSERT INTO Asistencias (fecha, asistentes, notas)
+						VALUES (?, ?, ?)
+						ON CONFLICT(fecha) DO UPDATE SET
+							asistentes = excluded.asistentes,
+							notas = excluded.notas;`,
+						[asistencia.Fecha, asistencia.Asistentes, asistencia.Notas]
+					)
+					asistencia.id = id
+				}
+				db.close()
+				return { success: true, data: asistencias }
+			} catch (error) {
+				console.error('Database insert error:', error)
+				return { success: false, error: error.message }
+			}
+		}
+	})
 	ipcMain.on('upload-asistencias', async (event) => {
 		const mainWindow = null
 		const result = await dialog.showOpenDialog(mainWindow, {
@@ -61,6 +91,19 @@ export default function initIPC() {
 			return
 		}
 		event.returnValue = 'canceled'
+	})
+	ipcMain.handle('get-asistencias-from-xlsx', async () => {
+		const mainWindow = null
+		const result = await dialog.showOpenDialog(mainWindow, {
+			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
+			properties: ['openFile']
+		})
+		if (!result.canceled) {
+			return await getAsistenciasFromXLSX({
+				filePath: result.filePaths[0]
+			})
+		}
+		return { success: false, message: 'Operación cancelada por el usuario.' }
 	})
 	ipcMain.on('upload-publicadores', async (event) => {
 		const mainWindow = null

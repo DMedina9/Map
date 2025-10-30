@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
-import ProgressBar from '../../utils/ProgressBar'
 import dayjs from 'dayjs'
 
 // jqWidgets
@@ -20,20 +19,18 @@ export default function Asistencias() {
 	const [showAlert, setShowAlert] = useState(false)
 	const [alertType, setAlertType] = useState('confirm')
 	const [message, setMessage] = useState('')
-	const [progress, setProgress] = useState(0)
+	const [showDelete, setShowDelete] = useState(false)
 	const gridRef = useRef(null)
+
+	const cargarAsistencias = useCallback(async () => {
+		setLoading(true)
+		const { success, data } = await fetchAsistencias()
+		setDatos(success ? data.map(corregirFechas) : [])
+		setLoading(false)
+	}, [])
 
 	useEffect(() => {
 		cargarAsistencias()
-		window.api.receive('upload-asistencias-message', ({ progress, message }) => {
-			setProgress(progress)
-			setMessage(message)
-		})
-		window.api.receive('upload-asistencias-reply', ({ type, message }) => {
-			setAlertType(type || 'success')
-			setMessage(message)
-			setShowAlert(true)
-		})
 	}, [cargarAsistencias])
 	const corregirFechas = (asistencia) => ({
 		...asistencia,
@@ -44,11 +41,23 @@ export default function Asistencias() {
 		fecha: asistencia.fecha ? dayjs(asistencia.fecha).format('YYYY-MM-DD') : null
 	})
 
-	const cargarAsistencias = useCallback(async () => {
-		setLoading(true)
-		const { success, data } = await fetchAsistencias()
-		setDatos(success ? data.map(corregirFechas) : [])
-		setLoading(false)
+	const guardarFila = useCallback(async (rowIndex, row) => {
+		if (row.isNew) {
+			const { success, id } = await addAsistencia(dataValueFechas(row))
+			if (success) {
+				row.id = id
+				row.isNew = false
+				const rowID = gridRef.current?.getrowid(rowIndex)
+				gridRef.current?.updaterow(rowID, row)
+			}
+		} else {
+			const { success, error } = await updateAsistencia(row.id, dataValueFechas(row))
+			if (!success) {
+				setAlertType('error')
+				setMessage(`Error al actualizar asistencia: ${error}`)
+				setShowAlert(true)
+			}
+		}
 	}, [])
 
 	const dataAdapter = useMemo(() => {
@@ -65,11 +74,31 @@ export default function Asistencias() {
 			id: 'id',
 			updaterow: async (rowid, rowdata, commit) => {
 				// that function is called after each edit.
-				var rowindex = gridRef.current.getrowboundindexbyid(rowid)
+				const rowindex = gridRef.current.getrowboundindexbyid(rowid)
 				await guardarFila(rowindex, rowdata)
 				// synchronize with the server - send update command
 				// call commit with parameter true if the synchronization with the server is successful
 				// and with parameter false if the synchronization failder.
+				commit(true)
+			},
+			deleterow: async (rowid, commit) => {
+				// synchronize with the server - send delete command
+				// call commit with parameter true if the synchronization with the server was successful
+				// and with parameter false if the synchronization has failed.
+				const rowindex = gridRef.current.getrowboundindexbyid(rowid)
+				const id = gridRef.current.getrowdata(rowindex).id
+				const { success, error } = await deleteAsistencia(id)
+				if (!success) {
+					setAlertType('error')
+					setMessage(`Error al eliminar registro: ${error}`)
+					setShowAlert(true)
+					commit(false)
+					return
+				}
+				setAlertType('success')
+				setMessage('Registro eliminado correctamente')
+				setShowAlert(true)
+
 				commit(true)
 			}
 		})
@@ -90,8 +119,6 @@ export default function Asistencias() {
 		gridRef.current.ensurerowvisible(dataAdapter.records.length - 1)
 	}
 
-	const importarRegistros = () => window.api.send('upload-asistencias')
-
 	const confirmarEliminar = () => {
 		const index = gridRef.current.getselectedrowindex()
 		if (index >= 0) {
@@ -107,34 +134,8 @@ export default function Asistencias() {
 
 	const eliminarFila = async () => {
 		const index = gridRef.current.getselectedrowindex()
-		if (index >= 0) {
-			const id = gridRef.current.getrowdata(index).id
-			await deleteAsistencia(id)
-			gridRef.current.deleterow(index)
-			setAlertType('success')
-			setMessage('Registro eliminado correctamente')
-			setShowAlert(true)
-		}
+		if (index >= 0) gridRef.current.deleterow(gridRef.current.getrowid(index))
 	}
-
-	const guardarFila = useCallback(async (rowIndex, row) => {
-		if (row.isNew) {
-			const { success, id } = await addAsistencia(dataValueFechas(row))
-			if (success) {
-				row.id = id
-				row.isNew = false
-				const rowID = gridRef.current?.getrowid(rowIndex)
-				gridRef.current?.updaterow(rowID, row)
-			}
-		} else {
-			const { success, error } = await updateAsistencia(row.id, dataValueFechas(row))
-			if (!success) {
-				setAlertType('error')
-				setMessage(`Error al actualizar asistencia: ${error}`)
-				setShowAlert(true)
-			}
-		}
-	}, [])
 
 	const columnas = [
 		{
@@ -170,8 +171,8 @@ export default function Asistencias() {
 			{/* Toolbar */}
 			<ButtonBar
 				onAdd={agregarRegistro}
+				showDelete={showDelete}
 				onDelete={confirmarEliminar}
-				onImport={importarRegistros}
 			/>
 
 			<Alert
@@ -199,9 +200,8 @@ export default function Asistencias() {
 				loading={loading}
 				pagesize={10}
 				pagesizeoptions={[10, 20, 50, 100]}
+				onRowselect={() => setShowDelete(true)}
 			/>
-
-			<ProgressBar show={loading} message={message} progress={progress} />
 		</div>
 	)
 }

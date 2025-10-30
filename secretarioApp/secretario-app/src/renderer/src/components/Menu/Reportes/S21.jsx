@@ -145,7 +145,9 @@ const S21 = () => {
 										theme="material"
 										autoDropDownHeight={true}
 										source={yearOptions}
-										selectedIndex={yearOptions.findIndex((y) => y.value === year)}
+										selectedIndex={yearOptions.findIndex(
+											(y) => y.value === year
+										)}
 										onChange={(e) => setYear(e.args.item.value)}
 									/>
 								</div>
@@ -209,7 +211,7 @@ const S21 = () => {
 				{year && pubId !== 0 && (
 					<JqxButton
 						width={150}
-						height={30}
+						height={25}
 						theme="material"
 						onClick={() => window.api.send('save-S-21', [year, pubId])}
 					>
@@ -219,7 +221,7 @@ const S21 = () => {
 				{year && (
 					<JqxButton
 						width={150}
-						height={30}
+						height={25}
 						theme="material"
 						onClick={() => window.api.send('save-S-21', [year, null])}
 					>

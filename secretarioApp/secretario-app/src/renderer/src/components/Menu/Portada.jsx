@@ -121,7 +121,7 @@ Colonia Las Palmas
 						<p style={{ color: '#444', lineHeight: 1.4 }}>{congregacion.vision}</p>
 
 						<div style={{ marginTop: 18 }}>
-							<strong style={{ color: '#333' }}>Resumen rápido</strong>
+							<strong style={{ color: '#333' }}>Accesos rápidos</strong>
 							<ul style={{ marginTop: 8, color: '#555' }}>
 								<li>
 									<a

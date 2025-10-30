@@ -2,7 +2,7 @@ import { initDb, allAsync, runAsync } from './database/db.mjs'
 import xlsx from 'xlsx'
 
 const insertPrivilegios = async (db) => {
-	const initialized = !!db;
+	const initialized = !!db
 	if (!initialized) db = await initDb()
 
 	// Insertar privilegios
@@ -16,7 +16,7 @@ const insertPrivilegios = async (db) => {
 }
 
 const insertTipoPublicador = async (db) => {
-	const initialized = !!db;
+	const initialized = !!db
 	if (!initialized) db = await initDb()
 
 	// Insertar tipos de publicador
@@ -29,8 +29,16 @@ const insertTipoPublicador = async (db) => {
 	return { success: true, message: 'Importado Tipos de Publicador' }
 }
 
-const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, filePath, showMessage }) => {
-	if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
+const insertPublicadores = async ({
+	workbook,
+	db,
+	Privilegio,
+	Tipo_Publicador,
+	filePath,
+	showMessage
+}) => {
+	if (!workbook && !filePath)
+		return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
 	if (!workbook) {
 		try {
@@ -71,7 +79,9 @@ const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, f
 					: ''
 			if (nombre == 'Total') continue // Ignorar filas de totales
 
-			let tipo_publicador = Tipo_Publicador.find((tp) => tp.descripcion == p['Tipo Publicador'])
+			let tipo_publicador = Tipo_Publicador.find(
+				(tp) => tp.descripcion == p['Tipo Publicador']
+			)
 			let privilegio = Privilegio.find((pr) => pr.descripcion == p.Privilegio)
 			let params = [
 				nombre,
@@ -119,9 +129,12 @@ const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, f
 					correo_contacto_emergencia = excluded.correo_contacto_emergencia;`,
 				params
 			)
-			count++;
+			count++
 			if (showMessage)
-				showMessage({ progress: Math.round(100 * count / jsonPublicadores.length), message: `Publicador importado: ${nombre} ${apellidos}...` });
+				showMessage({
+					progress: Math.round((100 * count) / jsonPublicadores.length),
+					message: `Publicador importado: ${nombre} ${apellidos}...`
+				})
 		}
 	} catch (e) {
 		return { success: false, message: e.toString() }
@@ -131,8 +144,17 @@ const insertPublicadores = async ({ workbook, db, Privilegio, Tipo_Publicador, f
 	return { success: true, message: `Publicadores importados: ${count}` }
 }
 
-const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath, showMessage }) => {
-	if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
+const insertInformes = async ({
+	workbook,
+	db,
+	Privilegio,
+	Tipo_Publicador,
+	Publicadores,
+	filePath,
+	showMessage
+}) => {
+	if (!workbook && !filePath)
+		return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
 	if (!workbook) {
 		try {
@@ -170,7 +192,9 @@ const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publi
 			let params = [
 				publicador.id,
 				p.Mes instanceof Date ? p.Mes.toISOString().substring(0, 10) : null,
-				p['Mes enviado'] instanceof Date ? p['Mes enviado'].toISOString().substring(0, 10) : null,
+				p['Mes enviado'] instanceof Date
+					? p['Mes enviado'].toISOString().substring(0, 10)
+					: null,
 				p['Predicó en el mes'] ? 1 : 0,
 				p['Cursos bíblicos'],
 				p['Tipo Publicador'] === 'Publicador'
@@ -197,9 +221,12 @@ const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publi
 					horas_SS = excluded.horas_SS;`,
 				params
 			)
-			count++;
+			count++
 			if (showMessage)
-				showMessage({ progress: Math.round(100 * count / jsonInf.length), message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...` });
+				showMessage({
+					progress: Math.round((100 * count) / jsonInf.length),
+					message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...`
+				})
 		}
 	} catch (e) {
 		return { success: false, message: e.toString() }
@@ -208,8 +235,17 @@ const insertInformes = async ({ workbook, db, Privilegio, Tipo_Publicador, Publi
 	}
 	return { success: true, message: `Informes importados: ${count}` }
 }
-const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, Publicadores, filePath, showMessage }) => {
-	if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
+const insertInformesGrupo = async ({
+	workbook,
+	db,
+	Privilegio,
+	Tipo_Publicador,
+	Publicadores,
+	filePath,
+	showMessage
+}) => {
+	if (!workbook && !filePath)
+		return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
 	if (!workbook) {
 		try {
@@ -247,7 +283,9 @@ const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, 
 			let params = [
 				publicador.id,
 				p.Mes instanceof Date ? p.Mes.toISOString().substring(0, 10) : null,
-				p['Mes enviado'] instanceof Date ? p['Mes enviado'].toISOString().substring(0, 10) : null,
+				p['Mes enviado'] instanceof Date
+					? p['Mes enviado'].toISOString().substring(0, 10)
+					: null,
 				p['Predicó en el mes'] ? 1 : 0,
 				p['Cursos bíblicos'],
 				p['Tipo Publicador'] === 'Publicador'
@@ -274,9 +312,12 @@ const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, 
 					horas_SS = excluded.horas_SS;`,
 				params
 			)
-			count++;
+			count++
 			if (showMessage)
-				showMessage({ progress: Math.round(100 * count / jsonInf.length), message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...` });
+				showMessage({
+					progress: Math.round((100 * count) / jsonInf.length),
+					message: `Informe importado: ${p.Nombre} - ${p.Mes?.toISOString().substring(0, 10)}...`
+				})
 		}
 	} catch (e) {
 		return { success: false, message: e.toString() }
@@ -286,7 +327,8 @@ const insertInformesGrupo = async ({ workbook, db, Privilegio, Tipo_Publicador, 
 	return { success: true, message: `Informes importados: ${count}` }
 }
 const insertAsistencias = async ({ workbook, db, filePath, showMessage }) => {
-	if (!workbook && !filePath) return { success: false, message: 'No se proporcionó workbook ni filePath' }
+	if (!workbook && !filePath)
+		return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
 	if (!workbook) {
 		try {
@@ -345,6 +387,29 @@ const insertAsistencias = async ({ workbook, db, filePath, showMessage }) => {
 	return { success: true, message: `Asistencias importadas: ${count}` }
 }
 
+const getAsistenciasFromXLSX = async ({ workbook, filePath }) => {
+	if (!workbook && !filePath)
+		return { success: false, message: 'No se proporcionó workbook ni filePath' }
+
+	if (!workbook) {
+		try {
+			workbook = xlsx.readFile(filePath, { cellDates: true })
+		} catch (err) {
+			return { success: false, message: 'Error al leer el archivo: ' + err.message }
+		}
+	}
+
+	const sheet = workbook.Sheets['Asistencias']
+	if (!sheet) return { success: false, message: 'No se encontró la hoja "Asistencias"' }
+
+	try {
+		const jsonAsis = xlsx.utils.sheet_to_json(sheet)
+		return { success: true, data: jsonAsis }
+	} catch (e) {
+		return { success: false, message: e.toString() }
+	}
+}
+
 const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx', showMessage = null) => {
 	const db = await initDb()
 	await insertPrivilegios(db)
@@ -365,4 +430,12 @@ const importExcel = async (filePath = 'data/Publicadores_Informes.xlsx', showMes
 	return { success: true }
 }
 //importExcel('C:\\Users\\DanielMedina\\OneDrive\\Congregación Jardines de Andalucía\\Secretario\\Jardines de Andalucía.xlsx').catch((err) => console.error(err));
-export { insertTipoPublicador, insertAsistencias, insertInformes, insertInformesGrupo, insertPublicadores, importExcel }
+export {
+	insertTipoPublicador,
+	insertAsistencias,
+	insertInformes,
+	insertInformesGrupo,
+	insertPublicadores,
+	getAsistenciasFromXLSX,
+	importExcel
+}

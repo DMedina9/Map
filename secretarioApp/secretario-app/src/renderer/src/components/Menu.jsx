@@ -30,28 +30,110 @@ export default function MainMenu() {
 			})
 		}
 	}, [])
-
-	const handleMenuClick = (event) => {
-		const text = event.args.textContent.trim()
-		const key = event.args.attributes.value.nodeValue || key
-		console.log(key)
-		const map = {
-			Inicio: '/',
-			'Cat-Publicadores': '/catalogos/publicadores',
-			'Cat-Informes': '/catalogos/informes',
-			'Cat-Asistencias': '/catalogos/asistencias',
-			'Carga-Publicadores': '/cargas/publicadores',
-			'Carga-Informes': '/cargas/informes',
-			'Carga-Asistencias': '/cargas/asistencias',
-			'S-1': '/reportes/S1',
-			'S-3': '/reportes/S3',
-			'S-21': '/reportes/S21',
-			'S-88': '/reportes/S88'
+	const data = [
+		{ id: '1', text: 'Inicio', value: '/' },
+		{
+			id: '2',
+			text: 'Catalogos'
+		},
+		{
+			id: '3',
+			text: 'Cargas'
+		},
+		{
+			id: '4',
+			text: 'Reportes'
+		},
+		{
+			id: '21',
+			text: 'Publicadores',
+			parentid: '2',
+			value: '/catalogos/publicadores'
+		},
+		{
+			id: '22',
+			text: 'Informes',
+			parentid: '2',
+			value: '/catalogos/informes'
+		},
+		{
+			id: '23',
+			parentid: '2',
+			text: 'Asistencias',
+			value: '/catalogos/asistencias'
+		},
+		{
+			id: '31',
+			text: 'Publicadores',
+			parentid: '3',
+			value: '/cargas/publicadores'
+		},
+		{
+			id: '32',
+			text: 'Informes',
+			parentid: '3',
+			value: '/cargas/informes'
+		},
+		{
+			id: '33',
+			text: 'Asistencias',
+			parentid: '3',
+			value: '/cargas/asistencias'
+		},
+		{
+			id: '41',
+			text: 'S-1',
+			parentid: '4',
+			value: '/reportes/S1'
+		},
+		{
+			id: '42',
+			text: 'S-3',
+			parentid: '4',
+			value: '/reportes/S3'
+		},
+		{
+			id: '43',
+			text: 'S-21',
+			parentid: '4',
+			value: '/reportes/S21'
+		},
+		{
+			id: '44',
+			text: 'S-88',
+			parentid: '4',
+			value: '/reportes/S88'
 		}
-
-		if (map[key]) {
-			setTitle(`Secretario de Congregación — ${text}`)
-			navigate(map[key])
+	]
+	// prepare the data
+	var source = {
+		datatype: 'json',
+		datafields: [{ name: 'id' }, { name: 'parentid' }, { name: 'text' }, { name: 'value' }],
+		id: 'id',
+		localdata: data
+	}
+	// create data adapter.
+	const dataAdapter = new window.jqx.dataAdapter(source)
+	// perform Data Binding.
+	dataAdapter.dataBind()
+	const records = dataAdapter.getRecordsHierarchy('id', 'parentid', 'items', [
+		{ name: 'text', map: 'label' }
+	])
+	const getTitle = (option) => {
+		return (
+			(option.parentid
+				? getTitle(data.find((item) => item.id == option.parentid)) + ' / '
+				: '') + option.text
+		)
+	}
+	const handleMenuClick = (event) => {
+		const option = data.find((item) => item.id == event.args.id)
+		console.log('Menu item clicked:', option)
+		if (option) {
+			if (option.value) {
+				navigate(option.value)
+				setTitle(`Secretario de Congregación — ${getTitle(option)}`)
+			}
 		}
 	}
 
@@ -65,37 +147,8 @@ export default function MainMenu() {
 					theme="material"
 					keyboardNavigation={true}
 					onItemclick={handleMenuClick}
-				>
-					<ul>
-						<li>Inicio</li>
-						<li>
-							Catálogos
-							<ul>
-								<li value={"Cat-Publicadores"}>Publicadores</li>
-								<li value={"Cat-Informes"}>Informes</li>
-								<li value={"Cat-Asistencias"}>Asistencias</li>
-							</ul>
-						</li>
-						<li>
-							Cargas
-							<ul>
-								<li value={"Carga-Publicadores"}>Publicadores</li>
-								<li value={"Carga-Informes"}>Informes</li>
-								<li value={"Carga-Asistencias"}>Asistencias</li>
-							</ul>
-						</li>
-						<li>
-							Reportes
-							<ul>
-								<li value={"S-1"}>S-1</li>
-								<li type="separator"></li>
-								<li value={"S-3"}>S-3</li>
-								<li value={"S-21"}>S-21</li>
-								<li value={"S-88"}>S-88</li>
-							</ul>
-						</li>
-					</ul>
-				</JqxMenu>
+					source={records}
+				/>
 			</div>
 
 			{/* Espaciado para no tapar contenido con el menú fijo */}
