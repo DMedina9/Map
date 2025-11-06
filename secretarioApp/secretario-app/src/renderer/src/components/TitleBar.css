@@ -30,6 +30,9 @@
 .titlebar-buttons .jqx-button:hover {
   background-color: #2e6da4 !important;
 }
+.titlebar-buttons .jqx-button.jqx-danger:hover {
+  background-color: rgba(218, 5, 5, 0.863) !important;
+}
 .titlebar-buttons .jqx-button:active {
   background-color: #337ab7 !important;
 }

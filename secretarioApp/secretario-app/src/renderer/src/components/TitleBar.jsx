@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import './TitleBar.css'
-import JqxButtonGroup from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttongroup'
+import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
+import JqxTooltip from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxtooltip'
 
 const icons = {
 	Minimize: (
@@ -16,7 +17,7 @@ const icons = {
 	),
 	Restore: (
 		<svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24">
-			<path fill="currentColor" d="M6 6h10v2H8v8H6V6zm2-2h10v10h-2V8H8V4z" />
+			<path fill="currentColor" d="M6 16h10V6H6v10zm2-8h6v6H8V8zm8 4h2V4H8v2h8v6z" />
 		</svg>
 	),
 	Close: (
@@ -31,39 +32,48 @@ const icons = {
 
 const TitleBar = ({ title }) => {
 	const [state, setState] = useState('normal') // 'normal', 'maximized'
-	const onButtonclick = (event) => {
-		const buttonId = event.args.button[0].id
-		switch (buttonId) {
-			case 'minimizeBtn':
-				window.api.send('app:minimize')
-				break
-			case 'maximizeBtn':
-				window.api.send('app:maximize')
-				break
-			case 'closeBtn':
-				window.api.send('app:close')
-				break
-			default:
-				break
-		}
-	}
 
-	window.api.receive('window-state-changed', (newState) => {
-		setState(newState)
-	})
+	window.setState = setState // Expose setState to the window for IPC use
 	return (
 		<div className="titlebar">
 			<div className="titlebar-draggable">
 				<span>{title}</span>
 			</div>
 			<div className="titlebar-buttons">
-				<JqxButtonGroup theme="material" template="primary" onButtonclick={onButtonclick}>
-					<button id="minimizeBtn">{icons.Minimize}</button>
-					<button id="maximizeBtn">
+				<JqxTooltip theme="material" position="bottom" content="Minimizar">
+					{/* The minimize button with tooltip */}
+					<JqxButton
+						theme="material"
+						template="primary"
+						onClick={() => window.api.send('app:minimize')}
+					>
+						{icons.Minimize}
+					</JqxButton>
+				</JqxTooltip>
+				<JqxTooltip
+					theme="material"
+					position="bottom"
+					content={state == 'normal' ? 'Maximizar' : 'Restaurar'}
+				>
+					{/* The maximize/restore button with tooltip */}
+					<JqxButton
+						theme="material"
+						template="primary"
+						onClick={() => window.api.send('app:maximize')}
+					>
 						{state == 'normal' ? icons.Maximize : icons.Restore}
-					</button>
-					<button id="closeBtn">{icons.Close}</button>
-				</JqxButtonGroup>
+					</JqxButton>
+				</JqxTooltip>
+				<JqxTooltip theme="material" position="bottom" content="Cerrar">
+					{/* The close button with tooltip */}
+					<JqxButton
+						theme="material"
+						template="danger"
+						onClick={() => window.api.send('app:close')}
+					>
+						{icons.Close}
+					</JqxButton>
+				</JqxTooltip>
 			</div>
 		</div>
 	)

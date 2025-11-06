@@ -387,7 +387,7 @@ const insertAsistencias = async ({ workbook, db, filePath, showMessage }) => {
 	return { success: true, message: `Asistencias importadas: ${count}` }
 }
 
-const getAsistenciasFromXLSX = async ({ workbook, filePath }) => {
+const getDataFromXLSX = async ({ workbook, filePath, sheetName }) => {
 	if (!workbook && !filePath)
 		return { success: false, message: 'No se proporcionó workbook ni filePath' }
 
@@ -399,12 +399,12 @@ const getAsistenciasFromXLSX = async ({ workbook, filePath }) => {
 		}
 	}
 
-	const sheet = workbook.Sheets['Asistencias']
-	if (!sheet) return { success: false, message: 'No se encontró la hoja "Asistencias"' }
+	const sheet = workbook.Sheets[sheetName]
+	if (!sheet) return { success: false, message: `No se encontró la hoja "${sheetName}"` }
 
 	try {
-		const jsonAsis = xlsx.utils.sheet_to_json(sheet)
-		return { success: true, data: jsonAsis }
+		const data = xlsx.utils.sheet_to_json(sheet)
+		return { success: true, data }
 	} catch (e) {
 		return { success: false, message: e.toString() }
 	}
@@ -436,6 +436,6 @@ export {
 	insertInformes,
 	insertInformesGrupo,
 	insertPublicadores,
-	getAsistenciasFromXLSX,
+	getDataFromXLSX,
 	importExcel
 }

@@ -4,7 +4,7 @@ import JqxInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxinput'
 import JqxDropDownList from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxdropdownlist'
 import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import JqxGrid from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxgrid'
-import Alert from '../../utils/Alert'
+import Alert from '../../../utils/Alert'
 
 // --- API invocaciones
 const fetchS88 = async (year, type) => await window.api.invoke('get-S88', [year, type])

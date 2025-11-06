@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import dayjs from 'dayjs'
-import Alert from './../../utils/Alert'
-import ProgressBar from '../../utils/ProgressBar'
+import Alert from '../../../utils/Alert'
+import ProgressBar from '../../../utils/ProgressBar'
 
 // Controles jqWidgets
 import JqxComboBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcombobox'

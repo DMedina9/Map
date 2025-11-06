@@ -1,17 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
-import ProgressBar from '../../utils/ProgressBar'
 import dayjs from 'dayjs'
 import JqxGrid, { jqx } from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxgrid'
 
 // ====================== Funciones API ======================
 const fetchPublicadores = async () => await window.api.invoke('get-publicadores')
-const fetchInformes = async () => await window.api.invoke('get-informes', ['', '', 'desc'])
-const addInforme = async (informe) => await window.api.invoke('add-informe', informe)
-const updateInforme = async (id, informe) =>
-	await window.api.invoke('update-informe', { id, ...informe })
-const deleteInforme = async (id) => await window.api.invoke('delete-informe', id)
+const fetchInformes = async () => await window.api.invoke('get-data-from-xlsx', 'Informes')
+const uploadInformes = async (informes) => await window.api.invoke('upload-informes-grid', informes)
 
 // ====================== Adaptadores ======================
 const getPublicadoresAdapter = (publicadores) => {
@@ -43,7 +39,7 @@ const getTipoPublicadoresAdapter = () => {
 }
 
 // ====================== Configuración de Grid ======================
-const getSource = (datos, publicadores, myGrid, saveRow) => {
+const getSource = (datos, publicadores) => {
 	const publicadoresAdapter = getPublicadoresAdapter(publicadores)
 	const tipoPublicadoresAdapter = getTipoPublicadoresAdapter()
 
@@ -51,18 +47,18 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 		datafields: [
 			{ name: 'id', type: 'number' },
 			{
-				name: 'publicador',
+				name: 'Nombre',
 				value: 'id_publicador',
 				values: { source: publicadoresAdapter.records, value: 'value', name: 'label' }
 			},
 			{ name: 'id_publicador', type: 'number' },
-			{ name: 'mes', type: 'date' },
-			{ name: 'mes_enviado', type: 'date' },
-			{ name: 'predico_en_el_mes', type: 'bool' },
-			{ name: 'cursos_biblicos', type: 'number' },
+			{ name: 'Mes', type: 'date' },
+			{ name: 'Mes enviado', type: 'date' },
+			{ name: 'Predicó en el mes', type: 'bool' },
+			{ name: 'Cursos bíblicos', type: 'number' },
 			{ name: 'id_tipo_publicador', type: 'number' },
 			{
-				name: 'tipo_publicador',
+				name: 'Tipo Publicador',
 				value: 'id_tipo_publicador',
 				values: {
 					source: tipoPublicadoresAdapter.records,
@@ -70,27 +66,18 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 					name: 'label'
 				}
 			},
-			{ name: 'horas', type: 'number' },
-			{ name: 'notas', type: 'string' },
-			{ name: 'horas_SS', type: 'number' }
+			{ name: 'Horas', type: 'number' },
+			{ name: 'Notas', type: 'string' },
+			{ name: 'Horas S. S. (PR)', type: 'number' }
 		],
 		datatype: 'array',
-		localdata: datos,
-		updaterow: async (rowid, rowdata, commit) => {
-			// that function is called after each edit.
-			var rowindex = myGrid.current?.getrowboundindexbyid(rowid)
-			if (saveRow) await saveRow(rowindex, rowdata)
-			// synchronize with the server - send update command
-			// call commit with parameter true if the synchronization with the server is successful
-			// and with parameter false if the synchronization failder.
-			commit(true)
-		}
+		localdata: datos
 	}
 
 	const columns = [
 		{
 			datafield: 'id_publicador',
-			displayfield: 'publicador',
+			displayfield: 'Nombre',
 			text: 'Publicador',
 			columntype: 'dropdownlist',
 			createeditor: (row, value, editor) => {
@@ -103,27 +90,27 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 			minWidth: 300
 		},
 		{
-			datafield: 'mes',
+			datafield: 'Mes',
 			text: 'Mes',
 			cellsformat: 'dd/MM/yyyy',
 			columntype: 'datetimeinput',
 			width: 120
 		},
 		{
-			datafield: 'mes_enviado',
+			datafield: 'Mes enviado',
 			text: 'Enviado',
 			cellsformat: 'dd/MM/yyyy',
 			columntype: 'datetimeinput',
 			width: 120
 		},
 		{
-			datafield: 'predico_en_el_mes',
+			datafield: 'Predicó en el mes',
 			text: 'Predicó',
 			columntype: 'checkbox',
 			width: 100
 		},
 		{
-			datafield: 'cursos_biblicos',
+			datafield: 'Cursos bíblicos',
 			text: 'Cursos bíblicos',
 			columntype: 'numberinput',
 			cellsalign: 'right',
@@ -135,7 +122,7 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 		},
 		{
 			datafield: 'id_tipo_publicador',
-			displayfield: 'tipo_publicador',
+			displayfield: 'Tipo Publicador',
 			text: 'Tipo Publicador',
 			columntype: 'dropdownlist',
 			createeditor: (row, value, editor) => {
@@ -148,7 +135,7 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 			width: 150
 		},
 		{
-			datafield: 'horas',
+			datafield: 'Horas',
 			text: 'Horas',
 			columntype: 'numberinput',
 			cellsalign: 'right',
@@ -159,7 +146,7 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 			width: 100
 		},
 		{
-			datafield: 'horas_SS',
+			datafield: 'Horas S. S. (PR)',
 			text: 'Horas SS',
 			columntype: 'numberinput',
 			cellsalign: 'right',
@@ -170,7 +157,7 @@ const getSource = (datos, publicadores, myGrid, saveRow) => {
 			width: 120
 		},
 		{
-			datafield: 'notas',
+			datafield: 'Notas',
 			text: 'Notas',
 			minWidth: 200
 		}
@@ -193,12 +180,12 @@ const initialForm = {
 }
 
 export default function Informes() {
+	const [datos, setDatos] = useState([])
 	const [columns, setColumns] = useState([])
 	const [dataAdapter, setDataAdapter] = useState(null)
 	const [showAlert, setShowAlert] = useState(false)
 	const [alertType, setAlertType] = useState('info')
 	const [message, setMessage] = useState('')
-	const [progress, setProgress] = useState(0)
 	const [loading, setLoading] = useState(true)
 	const myGrid = useRef(null)
 
@@ -213,52 +200,57 @@ export default function Informes() {
 		mes_enviado: informe.mes_enviado ? dayjs(informe.mes_enviado).format('YYYY-MM-DD') : null
 	})
 	// ====================== Eventos ======================
-	const saveRow = useCallback(async (rowindex, updated) => {
-		if (!updated) return
+	// --- Toolbar actions
+	const agregarRegistro = () => {
+		const id = Math.random().toString(36).substring(2, 9)
+		const newRow = { ...initialForm }
+		myGrid.current.addrow(id, newRow)
+		myGrid.current.ensurerowvisible(dataAdapter.records.length - 1)
+	}
 
-		// Guardar cambios en la base de datos
-		if (!updated.id) {
-			const { success, id } = await addInforme(dataValueFechas(updated))
-			if (success) {
-				updated.id = id
-				const rowID = myGrid.current?.getrowid(rowindex)
-				myGrid.current?.updaterow(rowID, updated)
-			}
-		} else {
-			const { success, error } = await updateInforme(updated.id, dataValueFechas(updated))
-			if (!success) {
-				setAlertType('error')
-				setMessage(`Error al actualizar informe: ${error}`)
-				setShowAlert(true)
-			}
+	const guardarRegistros = async () => {
+		const datos = dataAdapter.records
+		console.log('Guardando informes...', datos)
+		if (datos.length === 0) {
+			setAlertType('info')
+			setMessage('No hay informes para guardar.')
+			setShowAlert(true)
+			return
 		}
+		const { success, error } = await uploadInformes(
+			datos.map((informe) => dataValueFechas(informe))
+		)
+		if (!success) {
+			setAlertType('error')
+			setMessage(error || 'Error al guardar los informes.')
+			setShowAlert(true)
+			return
+		}
+		setAlertType('info')
+		setMessage(`Informes guardados correctamente.`)
+		setShowAlert(true)
+		setDatos([])
+	}
+
+	const cargarInformes = useCallback(async () => {
+		setLoading(true)
+		const { success, message, data } = await fetchInformes()
+		if (!success) {
+			setAlertType('error')
+			setMessage(message)
+			setShowAlert(true)
+		} else setDatos(data.map(corregirFechas))
+		setLoading(false)
 	}, [])
-	const addRow = () => {
-		myGrid.current?.addrow(null, { ...initialForm })
-		myGrid.current?.ensurerowvisible(dataAdapter.records.length - 1)
-	}
-	const deleteRow = async () => {
-		const index = myGrid.current?.getselectedrowindex()
+
+	const eliminarFila = () => {
+		const index = myGrid.current.getselectedrowindex()
 		if (index >= 0) {
-			//const id = myGrid.current?.getrowid(index)
-			setShowAlert(false)
-			setMessage('')
-			await deleteInforme(myGrid.current.getrowdata(index).id)
-			myGrid.current?.deleterow(index)
-			setAlertType('success')
-			setMessage('Fila eliminada correctamente')
-			setShowAlert(true)
-		}
-	}
-	const confirmDelete = () => {
-		const index = myGrid.current?.getselectedrowindex()
-		if (index >= 0) {
-			setAlertType('confirm')
-			setMessage('¿Eliminar fila seleccionada?')
-			setShowAlert(true)
+			const id = myGrid.current.getrowid(index)
+			myGrid.current.deleterow(id)
 		} else {
 			setAlertType('info')
-			setMessage('Seleccione una fila para eliminar')
+			setMessage('Seleccione una fila para eliminar.')
 			setShowAlert(true)
 		}
 	}
@@ -267,32 +259,17 @@ export default function Informes() {
 	useEffect(() => {
 		const cargarDatos = async () => {
 			setLoading(true)
-			const [{ success: ok1, data: infs }, { success: ok2, data: pubs }] = await Promise.all([
-				fetchInformes(),
-				fetchPublicadores()
-			])
-			const informes = ok1 ? infs.map(corregirFechas) : []
-			const listaPublicadores = ok2
+			const { success, data: pubs } = await fetchPublicadores()
+			const listaPublicadores = success
 				? pubs.map((p) => ({ value: p.id, label: `${p.nombre} ${p.apellidos}` }))
 				: []
-			const { dataAdapter, columns } = getSource(informes, listaPublicadores, myGrid, saveRow)
+			const { dataAdapter, columns } = getSource(datos, listaPublicadores)
 			setColumns(columns)
 			setDataAdapter(dataAdapter)
 			setLoading(false)
 		}
 		cargarDatos()
-
-		window.api.receive('upload-informes-message', ({ progress, message }) => {
-			setProgress(progress)
-			setMessage(message)
-		})
-
-		window.api.receive('upload-informes-reply', ({ type, message }) => {
-			setAlertType(type || 'success')
-			setMessage(message)
-			setShowAlert(true)
-		})
-	}, [saveRow])
+	}, [datos])
 
 	// ====================== Render ======================
 	//if (loading || !dataAdapter || !columns.length)
@@ -304,38 +281,32 @@ export default function Informes() {
 				type={alertType}
 				message={message}
 				show={showAlert}
-				onConfirm={deleteRow}
-				onCancel={() => {
-					setShowAlert(false)
-					setMessage('')
-					if (alertType === 'success') window.location.reload()
-				}}
+				onConfirm={eliminarFila}
+				onCancel={() => setShowAlert(false)}
 			/>
 			<ButtonBar
-				onAdd={addRow}
-				onDelete={confirmDelete}
-				onImport={() => window.api.send('upload-informes')}
+				onAdd={agregarRegistro}
+				onSave={guardarRegistros}
+				onDelete={eliminarFila}
+				onImport={cargarInformes}
 			/>
 
 			<JqxGrid
 				ref={myGrid}
-				theme="material"
 				width="100%"
 				height={500}
+				theme="material"
 				source={dataAdapter}
 				columns={columns}
-				editable={true}
-				editmode="selectedrow"
-				selectionmode="singlerow"
-				ready={() => setLoading(false)}
-				loading={loading}
+				pageable={true}
 				sortable={true}
 				altrows={true}
-				pageable={true}
+				editable={true}
+				ready={() => setLoading(false)}
+				loading={loading}
 				pagesize={10}
 				pagesizeoptions={[10, 20, 50, 100]}
 			/>
-			<ProgressBar show={!showAlert} message={message} progress={progress} />
 		</div>
 	)
 }

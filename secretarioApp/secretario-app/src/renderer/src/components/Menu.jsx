@@ -9,10 +9,12 @@ import CargaAsistencias from './Menu/Cargas/Asistencias'
 import Publicadores from './Menu/Catalogos/Publicadores'
 import Informes from './Menu/Catalogos/Informes'
 import Asistencias from './Menu/Catalogos/Asistencias'
-import S1 from './Menu/Reportes/S1'
-import S3 from './Menu/Reportes/S3'
-import S21 from './Menu/Reportes/S21'
-import S88 from './Menu/Reportes/S88'
+import S1 from './Menu/Reportes/Formularios/S1'
+import S3 from './Menu/Reportes/Formularios/S3'
+import S21 from './Menu/Reportes/Formularios/S21'
+import S88 from './Menu/Reportes/Formularios/S88'
+import Herramientas from './Menu/Configuracion/Herramientas'
+
 import Portada from './Menu/Portada'
 
 export default function MainMenu() {
@@ -43,6 +45,10 @@ export default function MainMenu() {
 		{
 			id: '4',
 			text: 'Reportes'
+		},
+		{
+			id: '5',
+			text: 'Configuración'
 		},
 		{
 			id: '21',
@@ -82,27 +88,39 @@ export default function MainMenu() {
 		},
 		{
 			id: '41',
+			text: 'Formularios',
+			parentid: '4',
+			value: '/reportes/formularios/S1'
+		},
+		{
+			id: '411',
 			text: 'S-1',
-			parentid: '4',
-			value: '/reportes/S1'
+			parentid: '41',
+			value: '/reportes/formularios/S1'
 		},
 		{
-			id: '42',
+			id: '412',
 			text: 'S-3',
-			parentid: '4',
-			value: '/reportes/S3'
+			parentid: '41',
+			value: '/reportes/formularios/S3'
 		},
 		{
-			id: '43',
+			id: '413',
 			text: 'S-21',
-			parentid: '4',
-			value: '/reportes/S21'
+			parentid: '41',
+			value: '/reportes/formularios/S21'
 		},
 		{
-			id: '44',
+			id: '414',
 			text: 'S-88',
-			parentid: '4',
-			value: '/reportes/S88'
+			parentid: '41',
+			value: '/reportes/formularios/S88'
+		},
+		{
+			id: '51',
+			text: 'Herramientas',
+			parentid: '5',
+			value: '/configuracion/herramientas'
 		}
 	]
 	// prepare the data
@@ -128,7 +146,6 @@ export default function MainMenu() {
 	}
 	const handleMenuClick = (event) => {
 		const option = data.find((item) => item.id == event.args.id)
-		console.log('Menu item clicked:', option)
 		if (option) {
 			if (option.value) {
 				navigate(option.value)
@@ -164,10 +181,11 @@ export default function MainMenu() {
 					<Route path="/cargas/publicadores" element={<CargaPublicadores />} />
 					<Route path="/cargas/informes" element={<CargaInformes />} />
 					<Route path="/cargas/asistencias" element={<CargaAsistencias />} />
-					<Route path="/reportes/S1" element={<S1 />} />
-					<Route path="/reportes/S3" element={<S3 />} />
-					<Route path="/reportes/S21" element={<S21 />} />
-					<Route path="/reportes/S88" element={<S88 />} />
+					<Route path="/reportes/formularios/S1" element={<S1 />} />
+					<Route path="/reportes/formularios/S3" element={<S3 />} />
+					<Route path="/reportes/formularios/S21" element={<S21 />} />
+					<Route path="/reportes/formularios/S88" element={<S88 />} />
+					<Route path="/configuracion/herramientas" element={<Herramientas onChange={(settings) => console.log(settings)} />} />
 				</Routes>
 			</div>
 		</>

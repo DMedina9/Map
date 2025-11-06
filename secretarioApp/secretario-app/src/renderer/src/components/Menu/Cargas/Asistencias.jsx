@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 import JqxGrid from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxgrid'
 
 // --- API invocaciones
-const fetchAsistencias = async () => await window.api.invoke('get-asistencias-from-xlsx')
+const fetchAsistencias = async () => await window.api.invoke('get-data-from-xlsx', 'Asistencias')
 const uploadAsistencias = async (asistencias) =>
 	await window.api.invoke('upload-asistencias-grid', asistencias)
 

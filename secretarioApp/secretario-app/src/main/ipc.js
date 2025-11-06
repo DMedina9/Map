@@ -3,7 +3,7 @@ import { initDb, allAsync, runAsync } from './database/db.mjs'
 import { GenerarS21, GenerarS21Totales, GenerarS88 } from './fillPDF.mjs'
 import {
 	insertAsistencias,
-	getAsistenciasFromXLSX,
+	getDataFromXLSX,
 	insertInformes,
 	insertPublicadores
 } from './importExcel.mjs'
@@ -31,7 +31,7 @@ export default function initIPC() {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
 	ipcMain.on('upload-informes', async (event) => {
-		const mainWindow = null
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {
 			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
@@ -74,7 +74,7 @@ export default function initIPC() {
 		}
 	})
 	ipcMain.on('upload-asistencias', async (event) => {
-		const mainWindow = null
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {
 			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
@@ -92,21 +92,22 @@ export default function initIPC() {
 		}
 		event.returnValue = 'canceled'
 	})
-	ipcMain.handle('get-asistencias-from-xlsx', async () => {
-		const mainWindow = null
+	ipcMain.handle('get-data-from-xlsx', async (event, sheetName) => {
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {
 			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
 		})
 		if (!result.canceled) {
-			return await getAsistenciasFromXLSX({
-				filePath: result.filePaths[0]
+			return await getDataFromXLSX({
+				filePath: result.filePaths[0],
+				sheetName
 			})
 		}
 		return { success: false, message: 'Operación cancelada por el usuario.' }
 	})
 	ipcMain.on('upload-publicadores', async (event) => {
-		const mainWindow = null
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {
 			filters: [{ name: 'Microsoft Excel', extensions: ['xlsx'] }],
 			properties: ['openFile']
@@ -126,7 +127,7 @@ export default function initIPC() {
 	})
 
 	ipcMain.on('save-S-21', async (event, [year, pubId]) => {
-		const mainWindow = null
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {
 			properties: ['openDirectory']
 		})
@@ -164,7 +165,7 @@ export default function initIPC() {
 		event.returnValue = 'canceled'
 	})
 	ipcMain.on('save-S-88', async (event, year) => {
-		const mainWindow = null
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {
 			properties: ['openDirectory']
 		})

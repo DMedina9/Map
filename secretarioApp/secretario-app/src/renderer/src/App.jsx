@@ -10,6 +10,10 @@ import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
 window.mesInforme = await window.api.invoke('get-mes-informe')
 window.mesInforme = dayjs(window.mesInforme).locale('es-mx').toDate()
 
+window.api.receive('window-state-changed', (newState) => {
+	if (window.setState) window.setState(newState)
+})
+
 function App() {
 	//const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 	return (
