@@ -1,4 +1,6 @@
 import { useRef } from 'react'
+import { getAppSetting } from '../utils/Settings'
+
 import JqxPanel from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxpanel'
 import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import JqxListBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxlistbox'
@@ -10,7 +12,22 @@ import JqxListBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxlistbox'
 	- Requiere que jqWidgets esté instalado y configurado en el proyecto.
 */
 
+const MONTHS = [
+	'Enero',
+	'Febrero',
+	'Marzo',
+	'Abril',
+	'Mayo',
+	'Junio',
+	'Julio',
+	'Agosto',
+	'Septiembre',
+	'Octubre',
+	'Noviembre',
+	'Diciembre'
+]
 const Portada = () => {
+	const theme = getAppSetting('theme')
 	const botonRef = useRef(null)
 
 	const congregacion = {
@@ -31,7 +48,6 @@ Colonia Las Palmas
 	}
 
 	const resumenItems = [
-		`Nombre: ${congregacion.nombre}`,
 		`Dirección: ${congregacion.direccion}`,
 		`Coordenadas: Lat: ${congregacion.coordenadas.lat}, Lon: ${congregacion.coordenadas.lon}`,
 		`Horarios: ${congregacion.horarios.domingo} (Domingo), ${congregacion.horarios.martes} (Martes)`,
@@ -46,10 +62,10 @@ Colonia Las Palmas
 
 	const panelStyle = {
 		display: 'flex',
+		flexDirection: 'column',
 		gap: 20,
 		padding: 20,
-		boxSizing: 'border-box',
-		alignItems: 'flex-start'
+		boxSizing: 'border-box'
 	}
 
 	const cardStyle = {
@@ -77,23 +93,24 @@ Colonia Las Palmas
 
 	return (
 		<div style={{ padding: 16 }}>
-			<JqxPanel width="100%" height={380} theme="material">
+			<JqxPanel width="100%" height={480} theme={theme}>
 				<div style={panelStyle}>
 					<div style={cardStyle}>
-						<h2 style={titleStyle}>{congregacion.nombre}</h2>
+						<h1 style={titleStyle}>{MONTHS[window.mesInforme.getMonth()]} de {window.mesInforme.getFullYear()}</h1>
+						<h2 style={titleStyle}>{theme} - {congregacion.nombre}</h2>
 						<p style={subtitleStyle}>{congregacion.direccion}</p>
 
 						<JqxListBox
 							width="100%"
 							height={160}
 							source={resumenItems}
-							theme="material"
+							theme={theme}
 						/>
 
 						<div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
 							<JqxButton
 								ref={botonRef}
-								theme="material"
+								theme={theme}
 								width={120}
 								height={25}
 								onClick={handleVerMas}
@@ -103,7 +120,7 @@ Colonia Las Palmas
 							</JqxButton>
 
 							<JqxButton
-								theme="material"
+								theme={theme}
 								width={120}
 								height={25}
 								onClick={() => window.open('/catalogos/informes', '_self')}
@@ -113,41 +130,29 @@ Colonia Las Palmas
 						</div>
 					</div>
 
-					<div style={{ ...cardStyle, flex: 1.2 }}>
-						<h3 style={titleStyle}>Misión</h3>
-						<p style={{ color: '#444', lineHeight: 1.4 }}>{congregacion.mision}</p>
-
-						<h3 style={{ ...titleStyle, marginTop: 16 }}>Visión</h3>
-						<p style={{ color: '#444', lineHeight: 1.4 }}>{congregacion.vision}</p>
-
-						<div style={{ marginTop: 18 }}>
-							<strong style={{ color: '#333' }}>Accesos rápidos</strong>
-							<ul style={{ marginTop: 8, color: '#555' }}>
-								<li>
-									<a
-										href="https://www.jw.org/es/"
-										target="_blank"
-										rel="noreferrer"
-									>
-										Sitio oficial
-									</a>
-								</li>
-								<li>
-									<a
-										href="https://stream.jw.org/home"
-										target="_blank"
-										rel="noreferrer"
-									>
-										JW Stream
-									</a>
-								</li>
-								<li>
-									<a href="https://hub.jw.org/" target="_blank" rel="noreferrer">
-										JW Hub
-									</a>
-								</li>
-							</ul>
-						</div>
+					<div style={cardStyle}>
+						<strong style={{ color: '#333' }}>Accesos rápidos</strong>
+						<ul style={{ marginTop: 8, color: '#555' }}>
+							<li>
+								<a href="https://www.jw.org/es/" target="_blank" rel="noreferrer">
+									Sitio oficial
+								</a>
+							</li>
+							<li>
+								<a
+									href="https://stream.jw.org/home"
+									target="_blank"
+									rel="noreferrer"
+								>
+									JW Stream
+								</a>
+							</li>
+							<li>
+								<a href="https://hub.jw.org/" target="_blank" rel="noreferrer">
+									JW Hub
+								</a>
+							</li>
+						</ul>
 					</div>
 				</div>
 			</JqxPanel>

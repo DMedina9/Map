@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import { getAppSetting } from '../../../utils/Settings'
+
 import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import JqxExpander from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxexpander'
 import JqxPanel from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxpanel'
@@ -28,6 +30,7 @@ const MONTHS = [
 ]
 
 export default function S1() {
+	const theme = getAppSetting('theme')
 	const month =
 		window.mesInforme.getFullYear() +
 		'-' +
@@ -47,7 +50,7 @@ export default function S1() {
 
 	return (
 		<div className="w-full m-4 mx-auto font-sans text-sm leading-relaxed bg-gray-100 rounded shadow">
-			<JqxExpander width="100%" showArrow={false} toggleMode="none" theme="material">
+			<JqxExpander width="100%" showArrow={false} toggleMode="none" theme={theme}>
 				{/* Header */}
 				<div className="bg-black text-white text-lg font-semibold px-6 py-4 rounded-t">
 					Informes de la congregación
@@ -64,7 +67,7 @@ export default function S1() {
 					<div className="italic text-gray-500 py-2 flex items-center gap-2">
 						Introduzca el informe y haga clic en{' '}
 						<JqxButton
-							theme="material"
+							theme={theme}
 							width={100}
 							height={28}
 							onClick={() => window.api.send('send-S1')}
@@ -79,7 +82,7 @@ export default function S1() {
 						width="100%"
 						height={600}
 						autoUpdate="true"
-						theme="material"
+						theme={theme}
 						className="mt-4"
 					>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
@@ -98,7 +101,9 @@ export default function S1() {
 											<div key={index} className="mb-4 px-2">
 												<div className="font-semibold">{sub.label}</div>
 												{sub.descripcion && (
-													<div className="text-gray-500 py-2">{sub.descripcion}</div>
+													<div className="text-gray-500 py-2">
+														{sub.descripcion}
+													</div>
 												)}
 												{/* En lugar de JqxInput */}
 												<div

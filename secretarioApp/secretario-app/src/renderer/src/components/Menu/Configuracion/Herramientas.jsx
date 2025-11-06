@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { DEFAULTS, temas, getAppSettings, setAppSettings } from '../../utils/Settings'
+import { useState, useEffect, useCallback /*, useRef*/ } from 'react'
+import { DEFAULTS, themes, getAppSettings, setAppSettings } from '../../utils/Settings'
 
 import PropTypes from 'prop-types'
 import JqxCheckBox from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxcheckbox'
@@ -10,7 +10,7 @@ import JqxInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxinput'
 
 export default function Herramientas({ onChange }) {
 	const [settings, setSettings] = useState(DEFAULTS)
-	const skipEvent = useRef(false) // 🔸 Evita bucles infinitos
+	//const skipEvent = useRef(false) // 🔸 Evita bucles infinitos
 
 	// Carga inicial desde localStorage (solo una vez)
 	useEffect(() => {
@@ -58,20 +58,20 @@ export default function Herramientas({ onChange }) {
 			<div style={{ marginBottom: 12 }}>
 				<label style={{ display: 'block', marginBottom: 6 }}>Tema</label>
 				<JqxDropDownList
-					theme="material"
+					theme={settings.theme}
 					width={'100%'}
-					source={temas}
+					source={themes}
 					displayMember={'label'}
 					valueMember={'value'}
-					selectedIndex={temas.findIndex((t) => t.value === settings.tema)}
-					onSelect={handleSelect('tema')}
+					selectedIndex={themes.findIndex((t) => t.value === settings.theme)}
+					onSelect={handleSelect('theme')}
 				/>
 			</div>
 
 			<div style={{ marginBottom: 12 }}>
 				<label style={{ display: 'block', marginBottom: 6 }}>Idioma</label>
 				<JqxInput
-					theme="material"
+					theme={settings.theme}
 					width={'100%'}
 					value={settings.S21Folder}
 					onSelect={handleSelect('S21Folder')}
@@ -81,7 +81,7 @@ export default function Herramientas({ onChange }) {
 			<div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
 				<div>
 					<JqxCheckBox
-						theme="material"
+						theme={settings.theme}
 						checked={settings.mostrarTooltips}
 						onChange={handleToggle('mostrarTooltips')}
 					>
@@ -91,7 +91,7 @@ export default function Herramientas({ onChange }) {
 
 				<div>
 					<JqxCheckBox
-						theme="material"
+						theme={settings.theme}
 						checked={settings.actualizacionAutomatica}
 						onChange={handleToggle('actualizacionAutomatica')}
 					>
@@ -101,7 +101,7 @@ export default function Herramientas({ onChange }) {
 
 				<div>
 					<JqxToggleButton
-						theme="material"
+						theme={settings.theme}
 						toggled={settings.modoOscuro}
 						width={140}
 						height={30}
@@ -113,10 +113,10 @@ export default function Herramientas({ onChange }) {
 			</div>
 
 			<div style={{ display: 'flex', gap: 8 }}>
-				<JqxButton width={100} height={32} onClick={handleSave} theme="material">
+				<JqxButton width={100} height={32} onClick={handleSave} theme={settings.theme}>
 					Guardar
 				</JqxButton>
-				<JqxButton width={100} height={32} onClick={handleReset} theme="material">
+				<JqxButton width={100} height={32} onClick={handleReset} theme={settings.theme}>
 					Restablecer
 				</JqxButton>
 			</div>

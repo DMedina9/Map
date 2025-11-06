@@ -1,12 +1,12 @@
 export const DEFAULTS = {
-	tema: 'light',
+	theme: 'light',
 	S21Folder: '',
 	mostrarTooltips: true,
 	modoOscuro: false,
 	actualizacionAutomatica: true
 }
 
-export const temas = [
+export const themes = [
 	{ label: 'Claro', value: 'light' },
 	{ label: 'Oscuro', value: 'dark' },
 	{ label: 'Azul', value: 'material' }
@@ -21,6 +21,11 @@ export function getAppSettings() {
 	} catch (e) {
 		console.error('Error al leer configuración local:', e)
 	}
+}
+export function getAppSetting(setting) {
+	const settings = getAppSettings()
+	if (settings && settings[setting]) return settings[setting]
+	return null
 }
 export function setAppSettings(next) {
 	try {
