@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getAppSetting } from '../../utils/Settings'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
 import ProgressBar from '../../utils/ProgressBar'
@@ -201,6 +202,7 @@ export default function Informes() {
 	const [progress, setProgress] = useState(0)
 	const [loading, setLoading] = useState(true)
 	const myGrid = useRef(null)
+	const theme = getAppSetting('theme')
 
 	const corregirFechas = (informe) => ({
 		...informe,
@@ -319,7 +321,7 @@ export default function Informes() {
 
 			<JqxGrid
 				ref={myGrid}
-				theme="material"
+				theme={theme}
 				width="100%"
 				height={500}
 				source={dataAdapter}

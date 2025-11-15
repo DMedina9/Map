@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { getAppSetting } from './Settings'
 import PropTypes from 'prop-types'
 import JqxButton from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxbuttons'
 import SaveIcon from '@mui/icons-material/Save'
@@ -27,6 +28,7 @@ export default function ButtonBar({
 	const addBtn = useRef(null)
 	const deleteBtn = useRef(null)
 	const importBtn = useRef(null)
+	const theme = getAppSetting('theme')
 
 	useEffect(() => {
 		const buttons = [
@@ -55,48 +57,48 @@ export default function ButtonBar({
 			{type ? (
 				type === 'confirm' ? (
 					<>
-						<JqxButton ref={cancelConfBtn} theme="material" onClick={onCancel}>
+						<JqxButton ref={cancelConfBtn} theme={theme} onClick={onCancel}>
 							<CloseIcon /> Cancelar
 						</JqxButton>
-						<JqxButton ref={acceptBtn} theme="material" onClick={onConfirm}>
+						<JqxButton ref={acceptBtn} theme={theme} onClick={onConfirm}>
 							<AcceptIcon />
 							Aceptar
 						</JqxButton>
 					</>
 				) : (
-					<JqxButton ref={closeBtn} theme="material" onClick={onCancel}>
+					<JqxButton ref={closeBtn} theme={theme} onClick={onCancel}>
 						<CloseIcon />
 						Cerrar
 					</JqxButton>
 				)
 			) : editando ? (
 				<>
-					<JqxButton ref={saveBtn} onClick={onSave} theme="material">
+					<JqxButton ref={saveBtn} onClick={onSave} theme={theme}>
 						<SaveIcon /> Guardar
 					</JqxButton>
-					<JqxButton ref={cancelBtn} onClick={onCancel} theme="material">
+					<JqxButton ref={cancelBtn} onClick={onCancel} theme={theme}>
 						<CloseIcon /> Cancelar
 					</JqxButton>
 				</>
 			) : (
 				<>
 					{onSave && (
-						<JqxButton ref={saveBtn} onClick={onSave} theme="material">
+						<JqxButton ref={saveBtn} onClick={onSave} theme={theme}>
 							<SaveIcon /> Guardar
 						</JqxButton>
 					)}
 					{onAdd && (
-						<JqxButton ref={addBtn} onClick={onAdd} theme="material">
+						<JqxButton ref={addBtn} onClick={onAdd} theme={theme}>
 							<AddIcon /> Agregar
 						</JqxButton>
 					)}
 					{showDelete && onDelete && (
-						<JqxButton ref={deleteBtn} onClick={onDelete} theme="material">
+						<JqxButton ref={deleteBtn} onClick={onDelete} theme={theme}>
 							<DeleteIcon /> Eliminar
 						</JqxButton>
 					)}
 					{onImport && (
-						<JqxButton ref={importBtn} onClick={onImport} theme="material">
+						<JqxButton ref={importBtn} onClick={onImport} theme={theme}>
 							<UploadFile /> Importar
 						</JqxButton>
 					)}

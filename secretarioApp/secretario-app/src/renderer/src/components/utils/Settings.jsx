@@ -1,5 +1,5 @@
 export const DEFAULTS = {
-	theme: 'light',
+	theme: 'material',
 	S21Folder: '',
 	mostrarTooltips: true,
 	modoOscuro: false,

@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types'
 import { useEffect, useRef } from 'react'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
+import { getAppSetting } from './Settings'
 import JqxProgressBar from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxprogressbar'
 
 export default function ProgressBar({ show, message, progress }) {
 	const progressRef = useRef(null)
+	const theme = getAppSetting('theme')
 
 	useEffect(() => {
 		if (progressRef.current) {
@@ -20,7 +20,7 @@ export default function ProgressBar({ show, message, progress }) {
 				ref={progressRef}
 				width={'100%'}
 				height={25}
-				theme="material"
+				theme={theme}
 				showText={true}
 				animationDuration={300}
 				value={progress}

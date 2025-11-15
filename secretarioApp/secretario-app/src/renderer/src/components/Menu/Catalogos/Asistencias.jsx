@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { getAppSetting } from '../../utils/Settings'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
 import dayjs from 'dayjs'
@@ -21,6 +22,7 @@ export default function Asistencias() {
 	const [message, setMessage] = useState('')
 	const [showDelete, setShowDelete] = useState(false)
 	const gridRef = useRef(null)
+	const theme = getAppSetting('theme')
 
 	const cargarAsistencias = useCallback(async () => {
 		setLoading(true)
@@ -187,7 +189,7 @@ export default function Asistencias() {
 				ref={gridRef}
 				width="100%"
 				height={500}
-				theme="material"
+				theme={theme}
 				source={dataAdapter}
 				columns={columnas}
 				pageable={true}

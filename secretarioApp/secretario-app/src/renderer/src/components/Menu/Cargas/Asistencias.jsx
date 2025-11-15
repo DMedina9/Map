@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useCallback } from 'react'
+import { getAppSetting } from '../../utils/Settings'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
 import dayjs from 'dayjs'
@@ -18,6 +19,7 @@ export default function Asistencias() {
 	const [alertType, setAlertType] = useState('confirm')
 	const [message, setMessage] = useState('')
 	const gridRef = useRef(null)
+	const theme = getAppSetting('theme')
 
 	const corregirFechas = (asistencia) => ({
 		...asistencia,
@@ -148,7 +150,7 @@ export default function Asistencias() {
 				ref={gridRef}
 				width="100%"
 				height={500}
-				theme="material"
+				theme={theme}
 				source={dataAdapter}
 				columns={columnas}
 				pageable={true}

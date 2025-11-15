@@ -1,10 +1,12 @@
 import { useRef, useEffect } from 'react'
+import { getAppSetting } from './Settings'
 import PropTypes from 'prop-types'
 import JqxWindow from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxwindow'
 import ButtonBar from './ButtonBar'
 
 export default function Alert({ type = 'info', message, show, onConfirm, onCancel }) {
 	const windowRef = useRef(null)
+	const theme = getAppSetting('theme')
 
 	useEffect(() => {
 		if (windowRef.current) {
@@ -32,7 +34,7 @@ export default function Alert({ type = 'info', message, show, onConfirm, onCance
 	return (
 		<JqxWindow
 			ref={windowRef}
-			theme="material"
+			theme={theme}
 			minWidth={400}
 			minHeight={120}
 			isModal={true}

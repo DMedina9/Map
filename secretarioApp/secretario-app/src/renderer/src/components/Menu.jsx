@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { Routes, Route, useNavigate } from 'react-router-dom'
+import { getAppSetting } from './utils/Settings'
 import TitleBar from './TitleBar'
 import JqxMenu from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxmenu'
 
@@ -21,6 +22,7 @@ export default function MainMenu() {
 	const menuRef = useRef(null)
 	const navigate = useNavigate()
 	const [title, setTitle] = useState('Secretario de Congregación')
+	const theme = getAppSetting('theme')
 
 	useEffect(() => {
 		if (menuRef.current) {
@@ -161,7 +163,7 @@ export default function MainMenu() {
 				<TitleBar title={title} />
 				<JqxMenu
 					ref={menuRef}
-					theme="material"
+					theme={theme}
 					keyboardNavigation={true}
 					onItemclick={handleMenuClick}
 					source={records}

@@ -42,6 +42,19 @@ export default function Herramientas({ onChange }) {
 		persist({ ...settings, [key]: value })
 	}
 
+	const handleChange = (key) => (event) => {
+		if (!event || !event.args) return
+		const value = event.args.value
+		if (settings[key] === value) return // 🔸 evita cambio redundante
+		persist({ ...settings, [key]: value })
+	}
+
+	const handleSearchFolder = async () => {
+		const { canceled, filePaths } = await window.api.invoke('get-path')
+		if (canceled || settings.S21Folder === filePaths[0]) return // 🔸 evita cambio redundante
+		persist({ ...settings, S21Folder: filePaths[0] })
+	}
+
 	const handleReset = () => {
 		persist(DEFAULTS)
 	}
@@ -52,7 +65,7 @@ export default function Herramientas({ onChange }) {
 	}
 
 	return (
-		<div style={{ padding: 12, maxWidth: 520 }}>
+		<div style={{ padding: 12 }}>
 			<h3>Configuración de la aplicación</h3>
 
 			<div style={{ marginBottom: 12 }}>
@@ -69,13 +82,24 @@ export default function Herramientas({ onChange }) {
 			</div>
 
 			<div style={{ marginBottom: 12 }}>
-				<label style={{ display: 'block', marginBottom: 6 }}>Idioma</label>
-				<JqxInput
-					theme={settings.theme}
-					width={'100%'}
-					value={settings.S21Folder}
-					onSelect={handleSelect('S21Folder')}
-				/>
+				<label style={{ display: 'block', marginBottom: 6 }}>Carpeta para exportar</label>
+				<div style={{ display: 'flex', flexDirection: 'row' }}>
+					<JqxInput
+						theme={settings.theme}
+						width={'100%'}
+						value={settings.S21Folder}
+						onChange={handleChange('S21Folder')}
+					/>
+					<JqxButton
+						style={{ marginLeft: 5 }}
+						width={20}
+						height={15}
+						onClick={handleSearchFolder}
+						theme={settings.theme}
+					>
+						...
+					</JqxButton>
+				</div>
 			</div>
 
 			<div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>

@@ -1,12 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { getAppSetting } from '../../utils/Settings'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
 import ProgressBar from '../../utils/ProgressBar'
 import dayjs from 'dayjs'
-
-// Estilos jqWidgets
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
 
 // Componentes jqWidgets
 import JqxInput from 'jqwidgets-scripts/jqwidgets-react-tsx/jqxinput'
@@ -56,6 +53,7 @@ export default function Publicadores() {
 	const editrow = useRef(-1)
 	const gridRef = useRef(null)
 	const myWindow = useRef(null)
+	const theme = getAppSetting('theme')
 
 	// Refs de formulario
 	const nombre = useRef(null)
@@ -220,7 +218,7 @@ export default function Publicadores() {
 
 			<JqxGrid
 				ref={gridRef}
-				theme="material"
+				theme={theme}
 				width="100%"
 				height={500}
 				source={dataAdapter}
@@ -239,7 +237,7 @@ export default function Publicadores() {
 
 			<JqxWindow
 				ref={myWindow}
-				theme="material"
+				theme={theme}
 				width="75%"
 				height={480}
 				resizable={false}
@@ -249,13 +247,13 @@ export default function Publicadores() {
 				<div className="flex flex-col justify-between h-full p-4">
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
 						<label>Nombre:</label>
-						<JqxInput ref={refs.nombre} theme="material" width="100%" />
+						<JqxInput ref={refs.nombre} theme={theme} width="100%" />
 						<label>Apellidos:</label>
-						<JqxInput ref={refs.apellidos} theme="material" width="100%" />
+						<JqxInput ref={refs.apellidos} theme={theme} width="100%" />
 						<label>Sexo:</label>
 						<JqxDropDownList
 							ref={refs.sexo}
-							theme="material"
+							theme={theme}
 							width="100%"
 							source={[
 								{ value: 'H', label: 'Masculino' },
@@ -265,23 +263,23 @@ export default function Publicadores() {
 						<label>Fecha nacimiento:</label>
 						<JqxDateTimeInput
 							ref={refs.fecha_nacimiento}
-							theme="material"
+							theme={theme}
 							width="100%"
 						/>
 						<label>Grupo:</label>
 						<JqxNumberInput
 							ref={refs.grupo}
-							theme="material"
+							theme={theme}
 							width="100%"
 							digits={1}
 							decimalDigits={0}
 						/>
 						<label>Fecha bautismo:</label>
-						<JqxDateTimeInput ref={refs.fecha_bautismo} theme="material" width="100%" />
+						<JqxDateTimeInput ref={refs.fecha_bautismo} theme={theme} width="100%" />
 						<label>Privilegio:</label>
 						<JqxDropDownList
 							ref={refs.id_privilegio}
-							theme="material"
+							theme={theme}
 							width="100%"
 							source={[
 								{ value: 1, label: 'Anciano' },
@@ -291,7 +289,7 @@ export default function Publicadores() {
 						<label>Tipo publicador:</label>
 						<JqxDropDownList
 							ref={refs.id_tipo_publicador}
-							theme="material"
+							theme={theme}
 							width="100%"
 							source={[
 								{ value: 1, label: 'Publicador' },
@@ -300,46 +298,46 @@ export default function Publicadores() {
 							]}
 						/>
 						<label>Ungido:</label>
-						<JqxCheckBox ref={refs.ungido} theme="material" />
+						<JqxCheckBox ref={refs.ungido} theme={theme} />
 						<label>Calle:</label>
-						<JqxInput ref={refs.calle} theme="material" width="100%" />
+						<JqxInput ref={refs.calle} theme={theme} width="100%" />
 						<label>Número:</label>
-						<JqxInput ref={refs.num} theme="material" width="100%" />
+						<JqxInput ref={refs.num} theme={theme} width="100%" />
 						<label>Colonia:</label>
-						<JqxInput ref={refs.colonia} theme="material" width="100%" />
+						<JqxInput ref={refs.colonia} theme={theme} width="100%" />
 						<label>Teléfono fijo:</label>
 						<JqxMaskedInput
 							ref={refs.telefono_fijo}
-							theme="material"
+							theme={theme}
 							mask="(##) #### ####"
 							width="100%"
 						/>
 						<label>Teléfono móvil:</label>
 						<JqxMaskedInput
 							ref={refs.telefono_movil}
-							theme="material"
+							theme={theme}
 							mask="(##) #### ####"
 							width="100%"
 						/>
 						<label>Contacto emergencia:</label>
-						<JqxInput ref={refs.contacto_emergencia} theme="material" width="100%" />
+						<JqxInput ref={refs.contacto_emergencia} theme={theme} width="100%" />
 						<label>Teléfono contacto emergencia:</label>
 						<JqxMaskedInput
 							ref={refs.tel_contacto_emergencia}
-							theme="material"
+							theme={theme}
 							mask="(##) #### ####"
 							width="100%"
 						/>
 						<label>Correo contacto emergencia:</label>
 						<JqxInput
 							ref={refs.correo_contacto_emergencia}
-							theme="material"
+							theme={theme}
 							width="100%"
 						/>
 						<label>Superintendente grupo:</label>
 						<JqxDropDownList
 							ref={refs.sup_grupo}
-							theme="material"
+							theme={theme}
 							width="100%"
 							source={[
 								{ value: 1, label: 'Superintendente' },

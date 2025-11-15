@@ -4,10 +4,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/es-mx'
 import dayjs from 'dayjs'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.base.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.material.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.light.css'
-import 'jqwidgets-scripts/jqwidgets/styles/jqx.dark.css'
+import './Estilos/Estilos'
 
 window.mesInforme = await window.api.invoke('get-mes-informe')
 window.mesInforme = dayjs(window.mesInforme).locale('es-mx').toDate()

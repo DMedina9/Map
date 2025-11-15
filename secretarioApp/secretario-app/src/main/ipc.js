@@ -125,7 +125,12 @@ export default function initIPC() {
 		}
 		event.returnValue = 'canceled'
 	})
-
+	ipcMain.handle('get-path', async (event) => {
+		const mainWindow = BrowserWindow.fromWebContents(event.sender)
+		return await dialog.showOpenDialog(mainWindow, {
+			properties: ['openDirectory']
+		})
+	})
 	ipcMain.on('save-S-21', async (event, [year, pubId]) => {
 		const mainWindow = BrowserWindow.fromWebContents(event.sender)
 		const result = await dialog.showOpenDialog(mainWindow, {

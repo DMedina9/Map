@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getAppSetting } from '../../utils/Settings'
 import ButtonBar from '../../utils/ButtonBar'
 import Alert from '../../utils/Alert'
 import dayjs from 'dayjs'
@@ -188,6 +189,7 @@ export default function Informes() {
 	const [message, setMessage] = useState('')
 	const [loading, setLoading] = useState(true)
 	const myGrid = useRef(null)
+	const theme = getAppSetting('theme')
 
 	const corregirFechas = (informe) => ({
 		...informe,
@@ -295,7 +297,7 @@ export default function Informes() {
 				ref={myGrid}
 				width="100%"
 				height={500}
-				theme="material"
+				theme={theme}
 				source={dataAdapter}
 				columns={columns}
 				pageable={true}
